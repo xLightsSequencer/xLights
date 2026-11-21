@@ -5967,7 +5967,37 @@ static NSDictionary<NSString*, id>* XLIncomingResult(iPadRenderContext::Incoming
 - (BOOL)deleteModel:(NSString*)modelName {
     if (!_context || !modelName || modelName.length == 0) return NO;
     if (!_context->AbortRender(5000)) return NO;
-    if (!_context->GetModelManager().Delete(modelName.UTF8String)) return NO;
+    auto& mm = _context->GetModelManager();
+    Model* m = mm.GetModel(modelName.UTF8String);
+    if (!m) return NO;
+    const std::string name = m->GetName();
+    const bool isGroup = m->GetDisplayAs() == DisplayAsType::ModelGroup;
+    // Delete also takes the model out of every group's member list and moves
+    // models chained to it onto its start channel, in memory only. The save
+    // patches just the marked records, so mark the ones that changed.
+    auto stateOf = [](Model* other) {
+        std::vector<std::string> s{ other->GetModelStartChannel() };
+        if (other->GetDisplayAs() == DisplayAsType::ModelGroup) {
+            const auto& members = static_cast<ModelGroup*>(other)->ModelNames();
+            s.insert(s.end(), members.begin(), members.end());
+        }
+        return s;
+    };
+    std::map<std::string, std::vector<std::string>> before;
+    for (const auto& [otherName, other] : mm) {
+        if (otherName != name) before[otherName] = stateOf(other);
+    }
+    if (!mm.Delete(name)) return NO;
+    if (isGroup) {
+        _context->MarkGroupDeleted(name);
+    } else {
+        _context->MarkModelDeleted(name);
+    }
+    for (const auto& [otherName, state] : before) {
+        if (Model* other = mm.GetModel(otherName); other && stateOf(other) != state) {
+            _context->MarkLayoutModelDirty(otherName);
+        }
+    }
     [self recalcModelStartChannels];
     return YES;
 }
@@ -20085,6 +20115,8 @@ NSString* fppTypeString(FPP_TYPE t) {
     });
     target->defaultConnectTimeout = 5000;
     target->messages.clear();
+    // A run with a playlist always starts here, so the playlist only gets this run's sequences.
+    target->ClearUploadedSequences();
 
     auto& om = _context->GetOutputManager();
     auto& mm = _context->GetModelManager();

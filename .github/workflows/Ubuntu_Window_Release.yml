@@ -64,7 +64,7 @@ jobs:
     - name: install ISPC
       uses: ispc/install-ispc-action@main
       with:
-        version: 1.31.0
+        version: 1.32.0
 
     # glslc (Vulkan SDK Bin) compiles the .comp compute kernels to SPIR-V
     # headers via the xLights.vcxproj CompileVulkanShaders pre-build target

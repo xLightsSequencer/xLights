@@ -306,6 +306,10 @@ TEST_CASE("Sequence upload of a full zstd v2 file sends the original", "[fpp3][t
     CHECK_FALSE(f->PrepareUploadSequence(file.get(), path, "", 2, FSEQFile::CompressionType::zstd, false));
     CHECK(f->WillUploadSequence());
     CHECK_FALSE(f->NeedCustomSequence());
+    CHECK(f->GetUploadChannelCount() == 60);
+    CHECK(f->GetUploadCompressionType() == FSEQFile::CompressionType::zstd);
+    CHECK_FALSE(f->GetUploadSparse());
+    CHECK(f->GetUploadFSEQVersion() == 2);
     CHECK(f->GetTempFile() == path);
     CHECK(f->sequences["show.fseq"].duration == 0.2f);
     CHECK_FALSE(f->FinalizeUploadSequence());
@@ -400,6 +404,10 @@ TEST_CASE("Sparse sequence upload builds a copy with this controller's channels"
     f->ranges = "10-19,40";
     CHECK_FALSE(f->PrepareUploadSequence(file.get(), path, "", 2, FSEQFile::CompressionType::zstd, true));
     REQUIRE(f->NeedCustomSequence());
+    CHECK(f->GetUploadChannelCount() == 14); // 10-19 and 40-43
+    CHECK(f->GetUploadCompressionType() == FSEQFile::CompressionType::zstd);
+    CHECK(f->GetUploadSparse());
+    CHECK(f->GetUploadFSEQVersion() == 2);
     std::string temp = f->GetTempFile();
     CHECK(std::filesystem::path(temp).parent_path() == std::filesystem::path(dir.path));
     std::vector<uint8_t> frame(60);

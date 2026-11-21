@@ -130,12 +130,21 @@ class FPP : public BaseController
     bool FinalizeUploadSequence();
     std::string GetTempFile() const { return tempFileName; }
     void ClearTempFile() { tempFileName = ""; }
+    // Describes the sequence prepared by the most recent PrepareUploadSequence() call,
+    // valid until FinalizeUploadSequence(). For UI/logging only.
+    uint32_t GetUploadChannelCount() const { return lastUploadChannelCount; }
+    FSEQFile::CompressionType GetUploadCompressionType() const { return lastUploadCompressionType; }
+    bool GetUploadSparse() const { return lastUploadSparse; }
+    int GetUploadFSEQVersion() const { return lastUploadFSEQVersion; }
 #endif
     bool supportedForFPPConnect() const;
 
     bool UploadUDPOutputsForProxy(OutputManager* outputManager);
     
     bool UploadPlaylist(const std::string &playlist);
+    // The playlist gets every sequence prepared since the last clear, so call this
+    // at the start of each upload when the instance is reused (FPP Connect kept open).
+    void ClearUploadedSequences() { sequences.clear(); }
     bool UploadModels(const nlohmann::json& models);
     bool UploadSubModelsAndGroups(ModelManager* allmodels, int32_t startChan, int32_t endChannel);
     bool UploadDisplayMap(std::map<std::string, std::string> &virtualDisplayData);
@@ -268,6 +277,10 @@ private:
     std::string baseSeqName;
     FSEQFile *outputFile = nullptr;
     bool outputFileIsOriginal = false;
+    uint32_t lastUploadChannelCount = 0;
+    FSEQFile::CompressionType lastUploadCompressionType = FSEQFile::CompressionType::none;
+    bool lastUploadSparse = false;
+    int lastUploadFSEQVersion = 0;
 
     CURL *setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     std::string curlInputBuffer;

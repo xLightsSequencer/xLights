@@ -172,7 +172,10 @@ public:
 #elif defined(XL_USE_WINDNS)
     std::shared_ptr<WinMDNSState> state;
     std::shared_ptr<WinMDNSState>* browseCtx = nullptr;
-    std::wstring browseQuery; // backing storage for DNS_SERVICE_BROWSE_REQUEST::QueryName
+    std::wstring browseQuery; // backing storage for browseRequest.QueryName
+    // DnsServiceBrowse keeps using the request until the browse is cancelled, so it
+    // can't be a stack local in the constructor.
+    DNS_SERVICE_BROWSE_REQUEST browseRequest{};
     DNS_SERVICE_CANCEL browseCancel{};
     bool browsing = false;
 #endif
@@ -271,9 +274,12 @@ struct WinMDNSState {
 };
 
 namespace {
+// DnsServiceResolve keeps using the request after returning DNS_REQUEST_PENDING,
+// so it lives here, owned until the completion callback, not on the caller's stack.
 struct WinResolveCtx {
     std::shared_ptr<WinMDNSState> state;
-    std::wstring name; // backing storage for DNS_SERVICE_RESOLVE_REQUEST::QueryName
+    std::wstring name; // backing storage for req.QueryName
+    DNS_SERVICE_RESOLVE_REQUEST req{};
     DNS_SERVICE_CANCEL cancel{};
 };
 
@@ -319,12 +325,11 @@ void WinBrowseCallback(DWORD status, PVOID context, PDNS_RECORD records) {
             auto* ctx = new WinResolveCtx();
             ctx->state = state;
             ctx->name = instance;
-            DNS_SERVICE_RESOLVE_REQUEST req{};
-            req.Version = DNS_QUERY_REQUEST_VERSION1;
-            req.QueryName = const_cast<PWSTR>(ctx->name.c_str());
-            req.pResolveCompletionCallback = WinResolveCallback;
-            req.pQueryContext = ctx;
-            DNS_STATUS s = GetWinDnsApi().resolve(&req, &ctx->cancel);
+            ctx->req.Version = DNS_QUERY_REQUEST_VERSION1;
+            ctx->req.QueryName = const_cast<PWSTR>(ctx->name.c_str());
+            ctx->req.pResolveCompletionCallback = WinResolveCallback;
+            ctx->req.pQueryContext = ctx;
+            DNS_STATUS s = GetWinDnsApi().resolve(&ctx->req, &ctx->cancel);
             if (s != DNS_REQUEST_PENDING && s != ERROR_SUCCESS) {
                 delete ctx; // completion callback will not fire
             }
@@ -358,12 +363,11 @@ BonjourData::BonjourData(const std::string &n, std::function<void(const std::str
         browseQuery += L".local";
     }
     browseCtx = new std::shared_ptr<WinMDNSState>(state);
-    DNS_SERVICE_BROWSE_REQUEST req{};
-    req.Version = DNS_QUERY_REQUEST_VERSION1;
-    req.pBrowseCallback = WinBrowseCallback;
-    req.pQueryContext = browseCtx;
-    req.QueryName = const_cast<PWSTR>(browseQuery.c_str());
-    DNS_STATUS s = api.browse(&req, &browseCancel);
+    browseRequest.Version = DNS_QUERY_REQUEST_VERSION1;
+    browseRequest.pBrowseCallback = WinBrowseCallback;
+    browseRequest.pQueryContext = browseCtx;
+    browseRequest.QueryName = const_cast<PWSTR>(browseQuery.c_str());
+    DNS_STATUS s = api.browse(&browseRequest, &browseCancel);
     browsing = (s == DNS_REQUEST_PENDING || s == ERROR_SUCCESS);
     if (!browsing) {
         delete browseCtx;
@@ -384,8 +388,9 @@ BonjourData::~BonjourData() {
             state->active = false; // make any late resolve callbacks no-ops
         }
         if (browsing) {
-            // After this returns the browse callback is no longer invoked, so it's
-            // safe to release the context holding our shared_ptr to the state.
+            // The final ERROR_CANCELLED callback is delivered before this returns and
+            // none follow, so after it the context holding our shared_ptr to the state,
+            // the request and the cancel handle can all be released.
             GetWinDnsApi().browseCancel(&browseCancel);
         }
     }

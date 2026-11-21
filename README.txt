@@ -14,6 +14,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (heffneil)              FPP Connect upload window: draggable divider between the controller gauges and
                                  the Completed list; extra window height goes to the list
+    -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
+    -bug (dkulp)                 SingleStrand FX with exactly 6 colours on the Default or "* Color Gradient"
+                                 palette could crash, and drew its gradient without colour 5
+    -bug (dkulp)                 Renaming embedded media to a path effects already use (but that isn't embedded)
+                                 no longer fails with "already in use"
+    -bug (derwin12)              FPP Connect with "Keep window open" added sequences from earlier uploads
+                                 to the playlist, not just the ones selected (#7395)
     -bug (dkulp)                 Bulk editing a setting could crash when a submodel or strand row held effects of
                                  an unknown type; those effects are now dropped on load as they are on model rows
     -bug (dkulp)                 Reading a sparse FSEQ into a buffer sized by its channel count (HinksPix export)

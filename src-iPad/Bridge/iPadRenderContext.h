@@ -38,6 +38,7 @@
 #include "utils/JobPool.h"
 #include "lyrics/PhonemeDictionary.h"
 #include "utils/xlImage.h"
+#include "XmlSerializer/LayoutRecordPatch.h"
 
 #include <atomic>
 #include <list>
@@ -620,6 +621,14 @@ public:
         }
         _renamedModels[newName] = disk;
     }
+    // A deleted model's `<model>` is removed from `<models>` on the next save,
+    // under its on-disk name if it was renamed since the file was loaded.
+    // Models imported in memory have no created set (the dirty mark carries
+    // them to disk), so there is no create/delete pair to cancel: removing a
+    // name the file doesn't have is a no-op.
+    void MarkModelDeleted(const std::string& modelName) {
+        LayoutRecordPatch::MarkDeleted(modelName, _deletedModels, _renamedModels, _dirtyLayoutModels);
+    }
     // J-7 (group CRUD) — structural group lifecycle. A newly-
     // created group needs a fresh `<modelGroup>` element appended;
     // a deleted group needs its element removed. Plain edits go
@@ -690,6 +699,7 @@ public:
                !_renamedGroups.empty() ||
                !_renamedViewObjects.empty() ||
                !_renamedModels.empty() ||
+               !_deletedModels.empty() ||
                !_deletedLayoutGroups.empty() ||
                _controllersDirty;
     }
@@ -839,6 +849,7 @@ public:
         _renamedGroups.clear();
         _renamedViewObjects.clear();
         _renamedModels.clear();
+        _deletedModels.clear();
         _deletedLayoutGroups.clear();
         _controllersDirty = false;
     }
@@ -1026,6 +1037,8 @@ private:
     // because models live in `<models>` (and the patcher needs
     // to find by old name) while groups live in `<modelGroups>`.
     std::map<std::string, std::string> _renamedModels;
+    // Models to drop from `<models>` on next save, by on-disk name.
+    std::set<std::string> _deletedModels;
     // J-12 — view objects created in-memory that need full
     // serialization on next save (append to <view_objects>).
     std::set<std::string> _createdViewObjects;

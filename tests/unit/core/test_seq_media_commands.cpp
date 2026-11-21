@@ -525,3 +525,42 @@ TEST_CASE("The undo step serial tells whether a media edit recorded a step", "[s
     REQUIRE(SeqMediaEdits::Rename(f.se, "b.png", "c.png", false, "Rename Media", false));
     CHECK(f.Undo().GetStepSerial() == s3);
 }
+
+TEST_CASE("Media edits replace entries the cache created on access instead of failing on them", "[seq][media][commands]") {
+    MediaFixture f;
+    REQUIRE(PutMediaCommand(Embedded("a.png", Png(2, 2, 0))).Apply(f.se));
+    REQUIRE(PutMediaCommand(Embedded("kept.png", Png(1, 1, 0))).Apply(f.se));
+    (void)f.Media().GetImage("x.png"); // path-only cache entries, as a render or load makes
+    (void)f.Media().GetTextFile("t.png");
+    REQUIRE(f.Media().HasMedia("x.png"));
+    REQUIRE(f.Media().HasMedia("t.png"));
+
+    RenameMediaCommand rename("a.png", "x.png", true);
+    CHECK(rename.Validate(f.se, ApplyMode::Strict).Ok());
+    auto undo = rename.Apply(f.se);
+    REQUIRE(undo != nullptr);
+    CHECK_FALSE(f.Media().HasMedia("a.png"));
+    REQUIRE(f.Media().GetEntryState("x.png").has_value());
+    CHECK(f.Media().GetEntryState("x.png")->embedded);
+    REQUIRE(undo->Apply(f.se) != nullptr);
+    REQUIRE(f.Media().GetEntryState("a.png").has_value());
+    CHECK(f.Media().GetEntryState("a.png")->embedded);
+
+    PutMediaCommand overText(Embedded("t.png", Png(1, 1, 0))); // another type over a cache entry
+    CHECK(overText.Validate(f.se, ApplyMode::Strict).Ok());
+    REQUIRE(overText.Apply(f.se) != nullptr);
+    REQUIRE(f.Media().GetEntryState("t.png").has_value());
+    CHECK(f.Media().GetEntryState("t.png")->type == MediaType::Image);
+
+    RenameMediaCommand ontoKept("a.png", "kept.png", true); // an embedded entry still blocks
+    CHECK(ontoKept.Validate(f.se, ApplyMode::Strict).status == CommandStatus::Invalid);
+
+    // The batch the media UIs build renames onto the cache entry instead of merging into it.
+    (void)f.Media().GetImage("y.png");
+    auto batch = BuildRenameMedia(f.se, "a.png", "y.png", false, "Rename");
+    REQUIRE(batch);
+    REQUIRE(batch->Apply(f.se) != nullptr);
+    CHECK_FALSE(f.Media().HasMedia("a.png"));
+    REQUIRE(f.Media().GetEntryState("y.png").has_value());
+    CHECK(f.Media().GetEntryState("y.png")->embedded);
+}

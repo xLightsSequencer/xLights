@@ -823,7 +823,8 @@ bool iPadRenderContext::HasLayoutDirt() const {
            !_dirtyBackgroundGroups.empty() ||
            !_renamedGroups.empty() ||
            !_renamedViewObjects.empty() ||
-           !_renamedModels.empty();
+           !_renamedModels.empty() ||
+           !_deletedModels.empty();
 }
 
 std::vector<std::string> iPadRenderContext::LayoutFilesChangedOnDisk() const {
@@ -1003,6 +1004,11 @@ bool iPadRenderContext::PatchLayoutDocument(pugi::xml_document& doc) {
             _dirtyLayoutModels.erase(createdName);
         }
     }
+
+    // Drop deleted models before the dirty pass, which appends a model it
+    // can't find: one deleted and then replaced by an import of the same
+    // name is removed here and appended there.
+    LayoutRecordPatch::RemoveNamed(modelsNode, "model", _deletedModels);
 
     // For each dirty model, serialize the in-memory Model into a fresh
     // pugi::xml_document via the canonical XmlSerializer (same path
@@ -1555,6 +1561,7 @@ void iPadRenderContext::ClearLayoutDirt() {
     _renamedGroups.clear();
     _renamedViewObjects.clear();
     _renamedModels.clear();
+    _deletedModels.clear();
     _deletedLayoutGroups.clear();
 }
 
