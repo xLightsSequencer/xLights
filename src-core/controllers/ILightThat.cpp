@@ -63,7 +63,7 @@ bool ILightThat::GetBoardCapabilities(BoardCapabilities& caps, std::string& erro
     caps = BoardCapabilities();
 
     std::string const baseIP = _fppProxy.empty() ? _ip : _fppProxy;
-    std::string const url = "http://" + baseIP + _baseUrl + "/api/board/info";
+    std::string const url = "http://" + baseIP + _baseUrl + "/turnip_api/board/info";
 
     // The board answers 503 while it's busy or short of memory, and asks for a retry
     int rc = 0;
@@ -80,7 +80,7 @@ bool ILightThat::GetBoardCapabilities(BoardCapabilities& caps, std::string& erro
 
     if (rc == 404) {
         // Firmware from before the endpoint, which applies none of these settings
-        spdlog::debug("ILightThat Outputs Upload: {} has no /api/board/info.", (const char*)_ip.c_str());
+        spdlog::debug("ILightThat Outputs Upload: {} has no /turnip_api/board/info.", (const char*)_ip.c_str());
         return true;
     }
     if (rc != 200) {
@@ -92,7 +92,7 @@ bool ILightThat::GetBoardCapabilities(BoardCapabilities& caps, std::string& erro
     nlohmann::json info = nlohmann::json::parse(res, nullptr, false);
     if (!info.is_object()) {
         error = "Could not read the board's capabilities: the reply was not understood.";
-        spdlog::warn("ILightThat Outputs Upload: /api/board/info replied {}", (const char*)res.c_str());
+        spdlog::warn("ILightThat Outputs Upload: /turnip_api/board/info replied {}", (const char*)res.c_str());
         return false;
     }
     if (!info.contains("capabilities") || !info["capabilities"].is_array()) {
@@ -246,7 +246,7 @@ bool ILightThat::SetOutputs(ModelManager* allmodels, OutputManager* outputManage
                 // model's own, so a grouped model is sent as its length times the group count
                 // and the board divides it back down. Nulls are counted in channels as well,
                 // at the width of a pixel in the model's colour order. The keys are sent only
-                // to firmware that lists the setting in /api/board/info; a model that needs a
+                // to firmware that lists the setting in /turnip_api/board/info; a model that needs a
                 // setting the board can't apply is refused, as its output would be wrong.
                 int const groupCount = std::max(1, model->GetGroupCount(1));
                 int const channelsPerPixel = (int)colorOrder.size();
