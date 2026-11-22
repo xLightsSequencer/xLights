@@ -16,6 +16,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  model on it to the target port; dropping it on the model pool removes them all
     -enh (scott)                 Lyrics: Generate AI Image for Phrase adds a Pictures effect of an AI-generated
                                  image on a chosen row for the phrase's time range
+    -enh (derwin12)              FPP Connect: the upload log and Completed list show whether each controller's
+                                 media was uploaded (with its size), already up to date, or not found
     -enh (heffneil)              FPP Connect upload window: draggable divider between the controller gauges and
                                  the Completed list; extra window height goes to the list
     -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
