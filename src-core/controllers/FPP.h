@@ -113,6 +113,8 @@ class FPP : public BaseController
 
     [[nodiscard]] bool IsVersionAtLeast(uint32_t maj, uint32_t min, uint32_t patch = 0) const;
 
+    enum class MediaUploadState { None, Checking, UpToDate, Uploading, NotFound };
+
 #ifndef DISCOVERYONLY
     bool PrepareUploadSequence(FSEQFile *file,
                                const std::string &seq,
@@ -136,6 +138,11 @@ class FPP : public BaseController
     FSEQFile::CompressionType GetUploadCompressionType() const { return lastUploadCompressionType; }
     bool GetUploadSparse() const { return lastUploadSparse; }
     int GetUploadFSEQVersion() const { return lastUploadFSEQVersion; }
+    // What CheckUploadMedia decided for the prepared sequence's media; final once
+    // the meta GET it queues has been processed.
+    MediaUploadState GetUploadMediaState() const { return lastUploadMediaState; }
+    const std::string &GetUploadMediaName() const { return lastUploadMediaName; }
+    uint64_t GetUploadMediaSize() const { return lastUploadMediaSize; }
 #endif
     bool supportedForFPPConnect() const;
 
@@ -281,6 +288,9 @@ private:
     FSEQFile::CompressionType lastUploadCompressionType = FSEQFile::CompressionType::none;
     bool lastUploadSparse = false;
     int lastUploadFSEQVersion = 0;
+    MediaUploadState lastUploadMediaState = MediaUploadState::None;
+    std::string lastUploadMediaName;
+    uint64_t lastUploadMediaSize = 0;
 
     CURL *setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     std::string curlInputBuffer;

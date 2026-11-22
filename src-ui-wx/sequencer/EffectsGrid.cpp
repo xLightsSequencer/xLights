@@ -58,6 +58,8 @@
 #include "effects/GlediatorEffect.h"
 #include "effects/MovingHeadEffect.h"
 #include "effects/PicturesEffect.h"
+#include "ai/AIImageDialog.h"
+#include "ai/aiType.h"
 #include "effects/ShaderEffect.h"
 #include "effects/VideoEffect.h"
 #include "models/DMX/DmxMovingHeadComm.h"
@@ -127,6 +129,7 @@ const long EffectsGrid::ID_GRID_MNU_REDO = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_PRESETS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_PHRASES = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_AI_IMAGE_PHRASE = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_AUTOLABEL = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_HALVETIMINGS = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_BREAKDOWN_WORD = wxNewId();
@@ -663,6 +666,9 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASE, "Breakdown Phrase");
                 if (selectedEffect->GetParentEffectLayer()->GetSelectedEffectCount() > 1) {
                     mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_PHRASES, "Breakdown Selected Phrases");
+                }
+                if (!selectedEffect->GetEffectName().empty()) {
+                    mnuLayer.Append(ID_GRID_MNU_AI_IMAGE_PHRASE, "Generate AI Image for Phrase...");
                 }
             } else if (ri->layerIndex == 1) {
                 mnuLayer.Append(ID_GRID_MNU_BREAKDOWN_WORD, "Breakdown Word");
@@ -1381,6 +1387,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(mParent, eventRowHeaderChanged);
         }
+    } else if (id == ID_GRID_MNU_AI_IMAGE_PHRASE) {
+        spdlog::debug("OnGridPopup - ID_GRID_MNU_AI_IMAGE_PHRASE");
+        GenerateAIImageForPhrase(mSelectedEffect);
     } else if (id == ID_GRID_MNU_HALVETIMINGS) {
         wxNumberEntryDialog dlg(this, "", "Divide timings by:", "Divide Timings", 2, 2, 100);
 
@@ -2059,6 +2068,62 @@ void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std
 
     xlights->GetMainSequencer()->PanelRowHeadings->Refresh(false);
     xlights->GetMainSequencer()->PanelEffectGrid->Refresh(false);
+}
+
+void EffectsGrid::GenerateAIImageForPhrase(Effect* phraseEffect) {
+    if (phraseEffect == nullptr) return;
+
+    auto services = xlights->GetAIServices(aiType::TYPE::IMAGES);
+    if (services.empty()) {
+        wxMessageBox("No AI image generation services are registered.\n"
+                     "Configure an AI service in the Settings menu.",
+                     "AI Generate", wxICON_INFORMATION | wxOK, this);
+        return;
+    }
+
+    aiBase* serv = services[0];
+    if (services.size() > 1) {
+        wxArrayString choices;
+        for (auto s : services) choices.push_back(s->GetLLMName());
+        wxSingleChoiceDialog pick(this, "Choose AI Image Generator", "AI Image Generator", choices);
+        if (pick.ShowModal() == wxID_CANCEL) return;
+        serv = services[pick.GetSelection()];
+    }
+
+    // The phrase has no model/row of its own (it lives on the Lyrics timing
+    // track) - ask which model row the generated Pictures effect should land
+    // on.
+    wxArrayString rowChoices;
+    std::vector<int> rowIndexes;
+    for (size_t i = 0; i < mSequenceElements->GetVisibleRowInformationSize(); ++i) {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(i);
+        if (ri == nullptr || ri->element == nullptr || ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        rowChoices.push_back(ri->displayName);
+        rowIndexes.push_back((int)i);
+    }
+    if (rowChoices.empty()) {
+        wxMessageBox("There are no model rows to place the generated image on.", "AI Generate", wxICON_INFORMATION | wxOK, this);
+        return;
+    }
+
+    wxSingleChoiceDialog rowPick(this, "Place the generated image on which row?", "Generate AI Image for Phrase", rowChoices);
+    if (rowPick.ShowModal() == wxID_CANCEL) return;
+    int targetRow = rowIndexes[rowPick.GetSelection()];
+
+    AIImageDialog dlg(this, serv);
+    dlg.PromptBox->SetValue(phraseEffect->GetEffectName());
+    dlg.SetEmbeddedMode(true);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    const wxImage& img = dlg.GetCurrentImage();
+    if (!img.IsOk()) return;
+
+    wxString name = wxString::Format("Images/ai_phrase_%lld.png", (long long)wxDateTime::Now().GetTicks());
+    std::string namePath = ToStdString(name);
+    mSequenceElements->GetSequenceMedia().AddEmbeddedImage(namePath, wxImageToXlImage(img));
+
+    std::string effectSettings = "E_TEXTCTRL_Pictures_Filename=" + namePath;
+    DropEffectAt(targetRow, "Pictures", effectSettings, xlights_version_string, phraseEffect->GetStartTimeMS(), phraseEffect->GetEndTimeMS());
 }
 
 int MapHitLocationToEffectSelection(HitLocation location) {
