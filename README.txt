@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              Layout Controllers page: the selected controller's red/green status light now
+                                 refreshes on its own (and when clicked) without setting a ping interval
     -enh (scott)                 Controller Visualiser: dragging a port's label onto another port moves every
                                  model on it to the target port; dropping it on the model pool removes them all
     -enh (scott)                 Lyrics: Generate AI Image for Phrase adds a Pictures effect of an AI-generated

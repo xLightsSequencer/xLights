@@ -3137,6 +3137,9 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
         MenuItem_File_Save->Enable(!readOnlyMode);
         MenuItem_File_Save->SetItemLabel("Save Layout\tCTRL-s");
         layoutPanel->RestoreFloatingPanes();
+        if (IsControllerListVisible()) {
+            RefreshControllerStatusNow();
+        }
     } else if (pagenum == NEWSEQUENCER) {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
