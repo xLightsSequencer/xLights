@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (MrPierreB)             Position zones on DMX moving head advanced models were not applied when
+                                 the effect was placed on a group containing the model; zones are now
+                                 applied for every DmxMovingHeadAdv member of a group buffer
     -bug (derwin12)              Layout Controllers page: the selected controller's red/green status light now
                                  refreshes on its own (and when clicked) without setting a ping interval
     -enh (scott)                 Controller Visualiser: dragging a port's label onto another port moves every

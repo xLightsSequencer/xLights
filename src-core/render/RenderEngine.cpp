@@ -1686,6 +1686,18 @@ public:
                     if (mh != nullptr) {
                         mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
                     }
+                } else if (model != nullptr && model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    const ModelGroup* mg = dynamic_cast<const ModelGroup*>(model);
+                    if (mg != nullptr) {
+                        for (const Model* child : mg->GetFlatModels()) {
+                            if (child->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
+                                const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(child);
+                                if (mh != nullptr) {
+                                    mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
