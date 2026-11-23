@@ -14,6 +14,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
                                  refusing settings the board's firmware does not support
+    -bug (MrPierreB)             Position zones on DMX moving head advanced models were not applied when
+                                 the effect was placed on a group containing the model; zones are now
+                                 applied for every DmxMovingHeadAdv member of a group buffer
+    -bug (derwin12)              Layout Controllers page: the selected controller's red/green status light now
+                                 refreshes on its own (and when clicked) without setting a ping interval
+    -enh (scott)                 Controller Visualiser: dragging a port's label onto another port moves every
+                                 model on it to the target port; dropping it on the model pool removes them all
+    -enh (scott)                 Lyrics: Generate AI Image for Phrase adds a Pictures effect of an AI-generated
+                                 image on a chosen row for the phrase's time range
+    -enh (derwin12)              FPP Connect: the upload log and Completed list show whether each controller's
+                                 media was uploaded (with its size), already up to date, or not found
+    -enh (heffneil)              FPP Connect upload window: draggable divider between the controller gauges and
+                                 the Completed list; extra window height goes to the list
     -bug (dkulp)                 iPad - A deleted model no longer comes back after saving the layout
     -bug (dkulp)                 SingleStrand FX with exactly 6 colours on the Default or "* Color Gradient"
                                  palette could crash, and drew its gradient without colour 5

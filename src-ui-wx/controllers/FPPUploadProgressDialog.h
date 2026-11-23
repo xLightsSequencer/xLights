@@ -16,6 +16,7 @@
 #include <vector>
 
 class wxGauge;
+class wxSplitterWindow;
 class wxTreeCtrl;
 
 class FPPUploadProgressDialog: public wxDialog
@@ -70,6 +71,8 @@ class FPPUploadProgressDialog: public wxDialog
     void addCompleted(const wxString& text, const wxColour& colour, const std::vector<ControllerResult>& controllers, bool expand);
     void OnClose(wxCloseEvent& event);
 
+    wxSplitterWindow* _splitter = nullptr;
+    bool _sashMoved = false;
     wxStaticText* _sequenceHeader = nullptr;
     wxStaticText* _completedLabel = nullptr;
     wxTreeCtrl* _completedTree = nullptr;

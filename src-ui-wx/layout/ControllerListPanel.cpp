@@ -1175,6 +1175,11 @@ wxWindow* ControllerListPanel::CreatePropertiesPanel(wxWindow* parent) {
     _ledPingBitmaps = CreateControllerLedBitmaps(20);
     _ledPing = new wxStaticBitmap(_propsPanel, wxID_ANY, _ledPingBitmaps.gray, wxDefaultPosition, FromDIP(wxSize(20, 20)));
     _ledPing->Disable();
+    _ledPing->SetToolTip("Controller status - click to check now");
+    _ledPing->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        _frame->PingControllerAsync(GetFirstSelectedController());
+        e.Skip();
+    });
     leftColSizer->Add(_ledPing, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 2);
 
     _btnAddController = new wxButton(_propsPanel, wxID_ANY, "Add");
@@ -1388,6 +1393,7 @@ void ControllerListPanel::UpdateControllerProperties() {
 
             _ledPing->Enable();
             RefreshPingIndicator(controller);
+            _frame->PingControllerAsync(controller);
 
             bool allowed = NetworkChangesAllowed();
             _btnVisualise->Enable(allowed && usingip == 1 && controller->CanVisualise());
@@ -1549,6 +1555,9 @@ void ControllerListPanel::OnControllerPropertyGridChange(wxPropertyGridEvent& ev
     if (!NetworkChangesAllowed()) {
         return;
     }
+    // A ping thread may be using this controller's outputs, and some edits
+    // (e.g. Protocol) delete and recreate them.
+    _frame->waitForPingsToComplete();
     wxString name = event.GetPropertyName();
     auto* om = _frame->GetOutputManager();
     auto* omm = _frame->GetOutputModelManager();

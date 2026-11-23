@@ -1745,11 +1745,34 @@ void xLightsFrame::PingActiveControllers() {
     }
 }
 
+// Pings one controller in the background, e.g. the one whose status LED is
+// on screen. Skipped while a ping round is in flight; that round refreshes
+// the LED when it completes.
+void xLightsFrame::PingControllerAsync(Controller* controller) {
+    if (controller == nullptr || !controller->IsActive() || ControllerPingThread::hasOutstandingPings()) {
+        return;
+    }
+    ControllerPingThread* thread = new ControllerPingThread(this, controller);
+    thread->Run();
+}
+
+// With no ping interval set, the selected controller's LED is still kept
+// current. The user's interval only controls the tree's status column.
+static constexpr int SELECTED_CONTROLLER_PING_SECS = 10;
+
+void xLightsFrame::RestartPingTimer() {
+    _pingTimer->Start((_controllerPingInterval > 0 ? _controllerPingInterval : SELECTED_CONTROLLER_PING_SECS) * 1000);
+}
+
 void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
     if (!IsControllerListVisible()) {
         return;
     }
-    PingActiveControllers();
+    if (_controllerPingInterval > 0) {
+        PingActiveControllers();
+    } else {
+        PingControllerAsync(layoutPanel->GetControllerListPanel()->GetFirstSelectedController());
+    }
 }
 
 // Called on a ping worker thread. Results arriving together collapse into a
@@ -1780,12 +1803,7 @@ void xLightsFrame::RefreshControllerStatusNow() {
     // show the last known state now; fresh results arrive via OnControllerPingComplete
     RefreshControllerStatusColumn();
     PingActiveControllers();
-
-    if (_controllerPingInterval > 0) {
-        _pingTimer->Start(_controllerPingInterval * 1000);
-    } else {
-        _pingTimer->Stop();
-    }
+    RestartPingTimer();
 }
 
 ControllerCaps* xLightsFrame::GetControllerCaps(const std::string& name) {

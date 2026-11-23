@@ -1559,6 +1559,8 @@ public:
     void OnPingTimer(wxTimerEvent& event);
     void waitForPingsToComplete();
     void PingActiveControllers();
+    void PingControllerAsync(Controller* controller);
+    void RestartPingTimer();
     void RefreshControllerStatusColumn();
     void OnControllerPingComplete();
     void RefreshControllerStatusNow();
