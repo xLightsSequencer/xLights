@@ -1,4 +1,4 @@
-name: Windows Nightly
+name: Windows and Linux Nightly
 
 on:
   schedule:
@@ -242,3 +242,50 @@ jobs:
             "build_scripts/msw/output/xLights-x64.msix" \
             "build_scripts/msw/output/xLights.appinstaller" \
             --clobber
+
+  # --- Linux AppImage ----------------------------------------------------------
+  # Same docker recipe as the release workflow (Ubuntu_Window_Release.yml), so a
+  # break in the AppImage packaging shows up the next morning instead of at
+  # release time. XLIGHTS_REF pins the recipe's fresh clone to this run's commit.
+  build-linux:
+    needs: check_for_commits
+    if: ${{ needs.check_for_commits.outputs.should_run == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: docker pull ghcr.io/xlightssequencer/xlights-build-docker:master
+      - run: docker run -e XLIGHTS_REF="${GITHUB_SHA}" -e XLIGHTS_VERSION="nightly-${GITHUB_SHA::9}" --name buildvm ghcr.io/xlightssequencer/xlights-build-docker:master /bin/bash Recipe.appimage
+      - run: docker cp buildvm:/xLights/xLights/AppImage/ /tmp/
+      - run: ls -lh /tmp/AppImage
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: xLights_AppImage
+          path: /tmp/AppImage/*.AppImage
+          if-no-files-found: error
+
+  # Runs after the Windows job because its "Create prerelease" step deletes and
+  # recreates the nightly release (dropping every asset). Still publishes when
+  # the Windows build fails: the AppImage then joins the previous night's release,
+  # replacing the AppImage there.
+  publish-linux:
+    needs: [build, build-linux]
+    if: ${{ always() && needs.build-linux.result == 'success' && github.ref == 'refs/heads/master' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: xLights_AppImage
+          path: appimage
+
+      - name: Publish AppImage to nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view nightly --json assets -q '.assets[].name' | { grep '\.AppImage$' || true; } | while read -r old; do
+            gh release delete-asset nightly "$old" --yes
+          done
+          gh release upload nightly appimage/*.AppImage --clobber
