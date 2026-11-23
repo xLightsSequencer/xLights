@@ -218,6 +218,11 @@ void FPPUploadProgressDialog::finishSequence(size_t index, SequenceState state, 
         colour = OkColour();
         ++_upToDateCount;
         break;
+    case SequenceState::Skipped:
+        status = detail.empty() ? _("Skipped") : wxString::Format(_("Skipped - %s"), wxString::FromUTF8(detail));
+        colour = WarningColour();
+        ++_skippedCount;
+        break;
     case SequenceState::Failed:
         status = detail.empty() ? _("Failed") : wxString::Format(_("Failed: %s"), wxString::FromUTF8(detail));
         colour = FailedColour();
@@ -317,6 +322,9 @@ void FPPUploadProgressDialog::finish(bool wasCancelled, int returnCode, bool sta
         summary = wxString::Format(_("Total time %s"), FormatDuration(_totalTime.Time()));
     } else {
         summary = wxString::Format(_("%d uploaded, %d already up to date, %d failed"), _uploadedCount, _upToDateCount, _failedCount);
+        if (_skippedCount > 0) {
+            summary += wxString::Format(_(", %d skipped"), _skippedCount);
+        }
         if (_cancelledCount + notStarted > 0) {
             summary += wxString::Format(_(", %d not uploaded"), _cancelledCount + notStarted);
         }

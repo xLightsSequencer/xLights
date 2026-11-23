@@ -143,6 +143,8 @@ class FPP : public BaseController
     MediaUploadState GetUploadMediaState() const { return lastUploadMediaState; }
     const std::string &GetUploadMediaName() const { return lastUploadMediaName; }
     uint64_t GetUploadMediaSize() const { return lastUploadMediaSize; }
+    // The prepared sequence was skipped because none of its channels are on this controller.
+    bool GetUploadNoChannels() const { return lastUploadNoChannels; }
 #endif
     bool supportedForFPPConnect() const;
 
@@ -291,6 +293,7 @@ private:
     MediaUploadState lastUploadMediaState = MediaUploadState::None;
     std::string lastUploadMediaName;
     uint64_t lastUploadMediaSize = 0;
+    bool lastUploadNoChannels = false;
 
     CURL *setupCurl(const std::string &url, bool isGet = true, int timeout = 30000);
     std::string curlInputBuffer;
