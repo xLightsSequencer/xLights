@@ -81,7 +81,7 @@ code is dark.
 | 10 | **Pixlite16 / Advatek** (`Pixlite16.cpp`, 72 KB) | `BaseController.cpp:79` | 🟡 | No `OpenSourceFirmware` → upload unreachable. But it **is** one of the six iPad discovery scanners (`XLSequenceDocument.mm:17106`), so iPad can *find and add* a Pixlite and never configure it onto the device. |
 | 11 | **Experience** (`Experience.cpp`) | `BaseController.cpp:95` | ❌ | No `OpenSourceFirmware`. Grep `Experience` in `src-iPad/` returns only unrelated prose. |
 | 12 | **PowerDMX** (`PowerDMX.cpp`) | `BaseController.cpp:101`; also a discovery participant (`Discovery.cpp:24`) | ❌ | No `OpenSourceFirmware`. The two `src-iPad/` hits (`XLSequenceDocument.h:3421`, `.mm:18173`) are FPP-type *labels* for fseq codec selection, not an upload path. |
-| 13 | **ILightThat** (`ILightThat.cpp`) | `BaseController.cpp:99` | ❌ | No `OpenSourceFirmware`. Grep `ILightThat` in `src-iPad/`: zero hits. |
+| 13 | **ILightThat** (`ILightThat.cpp`) | `BaseController.cpp:99` | ❌ | No `OpenSourceFirmware`. Grep `ILightThat` in `src-iPad/`: zero hits. Upload payload (incl. grouping/zig zag/null pixels) is core-shared, so it applies automatically once iPad gains upload. |
 | 14 | **Unrecognized-driver fallback → FPP** | `BaseController.cpp:104` (`else` branch constructs `new FPP`) | ✅ | Shared core; reached identically from the iPad bridge at `XLSequenceDocument.mm:16942` when the fixture passes the `OpenSourceFirmware` UI gate. |
 
 ---

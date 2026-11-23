@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
+                                 refusing settings the board's firmware does not support
     -bug (MrPierreB)             Position zones on DMX moving head advanced models were not applied when
                                  the effect was placed on a group containing the model; zones are now
                                  applied for every DmxMovingHeadAdv member of a group buffer
