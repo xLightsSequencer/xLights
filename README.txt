@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -enh (derwin12)              Layout: Esc exits the active model drawing tool (e.g. Single Line)
     -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
                                  refusing settings the board's firmware does not support
     -bug (MrPierreB)             Position zones on DMX moving head advanced models were not applied when

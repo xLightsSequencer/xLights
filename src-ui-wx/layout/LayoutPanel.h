@@ -775,6 +775,7 @@ class LayoutPanel: public wxPanel
         void SetCurrentLayoutGroup(const std::string& group);
         void UpdateAddObjectButton();
         void FinalizeModel();
+        void ExitModelDrawMode();
         void SelectBaseObject3D();
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel, long id, const wxString& windowName, const std::string& colOrderKey, const wxString& nameColTitle, TreeChanColumns& cols);
