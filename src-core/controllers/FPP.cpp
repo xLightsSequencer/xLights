@@ -1344,9 +1344,13 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
             return true;
         }
     }
-    sequences[baseName].sequence = baseName;
-    sequences[baseName].media = mediaBaseName;
-    sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
+    // An .eseq goes to the effects folder and is started with an FPP command; FPP can't
+    // play it as a playlist sequence entry.
+    if (fn.extension() != ".eseq") {
+        sequences[baseName].sequence = baseName;
+        sequences[baseName].media = mediaBaseName;
+        sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
+    }
 
     std::string safeIP = ipAddress;
     std::replace(safeIP.begin(), safeIP.end(), '.', '_');
