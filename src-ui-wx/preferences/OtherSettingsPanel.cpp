@@ -61,6 +61,11 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT_LAYOUTDOUBLECLICKACTION = wxN
 const wxWindowID OtherSettingsPanel::ID_CHOICE_LAYOUTDOUBLECLICKACTION = wxNewId();
 //*)
 const wxWindowID OtherSettingsPanel::ID_CHOICE_GfxBackend = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHOICE_DuplicateGroups = wxNewId();
+
+// saved values, in the same order as the choice entries
+static const char* const DuplicateGroupsValues[] = { "Ask", "Always", "Never" };
+static constexpr int DuplicateGroupsValueCount = sizeof(DuplicateGroupsValues) / sizeof(DuplicateGroupsValues[0]);
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
 	//(*EventTable(OtherSettingsPanel)
@@ -275,6 +280,27 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     }
 #endif
 
+    // hand-added outside the wxSmith guards
+    {
+        wxBoxSizer* dupBox = new wxBoxSizer(wxVERTICAL);
+        wxFlexGridSizer* dupSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        wxStaticText* dupLabel = new wxStaticText(this, wxID_ANY, _("Add Duplicated Models to Groups:"));
+        dupSizer->Add(dupLabel, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        Choice_DuplicateGroups = new wxChoice(this, ID_CHOICE_DuplicateGroups);
+        Choice_DuplicateGroups->Append(_("Ask Every Time"));
+        Choice_DuplicateGroups->Append(_("Always"));
+        Choice_DuplicateGroups->Append(_("Never"));
+        Choice_DuplicateGroups->SetSelection(0);
+        dupSizer->Add(Choice_DuplicateGroups, 1, wxALL | wxEXPAND, 5);
+        dupBox->Add(dupSizer, 0, wxEXPAND, 0);
+        wxStaticText* dupDescription = new wxStaticText(this, wxID_ANY, _("Choose whether duplicated models are automatically added to the same groups as the original."));
+        dupDescription->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        dupDescription->Wrap(FromDIP(360));
+        dupBox->Add(dupDescription, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+        GridBagSizer1->Add(dupBox, wxGBPosition(12, 1), wxDefaultSpan, wxALL | wxEXPAND, 0);
+        Connect(ID_CHOICE_DuplicateGroups, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    }
+
 #ifdef __LINUX__
     // The renderer choice list is Windows-vendor-specific (CUDA/QSV/AMF/
     // DirectX11); Linux's decode path always auto-tries vaapi then vdpau
@@ -320,6 +346,8 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
     frame->SetKeybindingsLocation(Choice_KeybindingsLocation->GetStringSelection());
     frame->SetLayoutDoubleClickAction(Choice_LayoutDoubleClickAction->GetStringSelection());
+    const int duplicateGroups = Choice_DuplicateGroups->GetSelection();
+    frame->SetDuplicateGroupsBehavior(DuplicateGroupsValues[duplicateGroups >= 0 && duplicateGroups < DuplicateGroupsValueCount ? duplicateGroups : 0]);
 	frame->SetPromptBatchRenderIssues(CheckBox_BatchRenderPromptIssues->GetValue());
 	frame->SetIgnoreVendorModelRecommendations(CheckBox_IgnoreVendorModelRecommendations->GetValue());
     frame->SetControllerPingInterval(CtrlPingInterval->GetValue());
@@ -356,6 +384,12 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     Choice_AliasPromptBehavior->SetStringSelection(frame->GetRenameModelAliasPromptBehavior());
     Choice_KeybindingsLocation->SetStringSelection(frame->GetKeybindingsLocation());
     Choice_LayoutDoubleClickAction->SetStringSelection(frame->GetLayoutDoubleClickAction());
+    Choice_DuplicateGroups->SetSelection(0);
+    for (int i = 0; i < DuplicateGroupsValueCount; ++i) {
+        if (frame->GetDuplicateGroupsBehavior() == DuplicateGroupsValues[i]) {
+            Choice_DuplicateGroups->SetSelection(i);
+        }
+    }
 	CheckBox_BatchRenderPromptIssues->SetValue(frame->GetPromptBatchRenderIssues());
 	CheckBox_IgnoreVendorModelRecommendations->SetValue(frame->GetIgnoreVendorModelRecommendations());
     CtrlPingInterval->SetValue(frame->GetControllerPingInterval());

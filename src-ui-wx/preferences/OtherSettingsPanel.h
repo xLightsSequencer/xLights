@@ -67,6 +67,8 @@ class OtherSettingsPanel: public wxPanel
 		// Hand-added (outside the wxSmith guards): preview graphics backend
 		// selector, only present on builds with the Vulkan backend compiled in.
 		wxChoice* GraphicsBackendChoice = nullptr;
+		// hand-added outside the wxSmith guards
+		wxChoice* Choice_DuplicateGroups = nullptr;
 
         virtual bool TransferDataFromWindow() override;
         virtual bool TransferDataToWindow() override;
@@ -106,6 +108,7 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHOICE_LAYOUTDOUBLECLICKACTION;
 		//*)
 		static const wxWindowID ID_CHOICE_GfxBackend;
+		static const wxWindowID ID_CHOICE_DuplicateGroups;
 
 	private:
         xLightsFrame *frame;
