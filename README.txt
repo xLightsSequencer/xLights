@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
+    -bug (derwin12)              FPP Connect: an effect sequence with no channels on a controller now reports
+                                 "Skipped - no channels on this controller" instead of "Already up to date"
 
     -enh (derwin12)              Layout: Esc exits the active model drawing tool (e.g. Single Line)
     -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,

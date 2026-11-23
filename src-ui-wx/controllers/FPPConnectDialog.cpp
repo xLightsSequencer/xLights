@@ -1830,10 +1830,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             std::vector<FPPUploadProgressDialog::ControllerResult> results;
             int failedControllers = 0;
             int mediaOnlyUploads = 0;
+            int noChannelSkips = 0;
+            int targets = 0;
             if (seqOpened) {
                 size_t i = 0;
                 for (const auto& inst : instances) {
                     if (doUpload[i]) {
+                        ++targets;
                         FPPUploadProgressDialog::ControllerResult r;
                         r.name = inst->hostName + " - " + inst->ipAddress;
                         if (inst->faileduploads.size() > failuresBefore[i]) {
@@ -1851,6 +1854,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         } else if (upToDate[i] && inst->GetUploadMediaState() == FPP::MediaUploadState::Uploading) {
                             r.status = prgs->isCancelled() ? ToUTF8(_("Cancelled")) : ToUTF8(_("Uploaded media"));
                             ++mediaOnlyUploads;
+                        } else if (upToDate[i] && inst->GetUploadNoChannels()) {
+                            r.status = ToUTF8(_("Skipped - no channels on this controller"));
+                            ++noChannelSkips;
                         } else if (upToDate[i]) {
                             r.status = ToUTF8(_("Already up to date"));
                         } else if (uploaded[i]) {
@@ -1895,6 +1901,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                      ToUTF8(wxString::Format(wxPLURAL("on %d controller", "on %d controllers", failedControllers), failedControllers)), results);
             } else if (cancelled) {
                 prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Cancelled, "", results);
+            } else if (seqUploadTargets == 0 && mediaOnlyUploads == 0 && noChannelSkips > 0 && noChannelSkips == targets) {
+                prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::Skipped,
+                                     ToUTF8(_("no channels on the selected controllers")), results);
             } else if (seqUploadTargets == 0 && mediaOnlyUploads == 0) {
                 prgs->finishSequence(seqIndex, FPPUploadProgressDialog::SequenceState::UpToDate, "", results);
             } else {

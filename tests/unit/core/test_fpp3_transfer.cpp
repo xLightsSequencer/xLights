@@ -487,7 +487,15 @@ TEST_CASE("Sequence upload of a v1 file and an effect sequence", "[fpp3][transfe
         f->ranges = "30-39";
         CHECK_FALSE(f->PrepareUploadSequence(file.get(), (dir.path / "fx2.fseq").string(), "", 2, FSEQFile::CompressionType::zstd, true));
         CHECK_FALSE(f->WillUploadSequence());
+        CHECK(f->GetUploadNoChannels());
         CHECK(f->GetTempFile().empty());
+
+        SECTION("the next prepare clears the skip") {
+            f->ranges = "0-9";
+            f->PrepareUploadSequence(file.get(), (dir.path / "fx2.fseq").string(), "", 2, FSEQFile::CompressionType::zstd, true);
+            CHECK(f->WillUploadSequence());
+            CHECK_FALSE(f->GetUploadNoChannels());
+        }
         (void)path;
     }
 }

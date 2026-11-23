@@ -1333,6 +1333,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     lastUploadMediaState = MediaUploadState::None;
     lastUploadMediaName.clear();
     lastUploadMediaSize = 0;
+    lastUploadNoChannels = false;
     std::filesystem::path fn(seq);
     std::string baseName = fn.filename().string();
     std::string mediaBaseName = "";
@@ -1486,6 +1487,7 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
         newRanges = SparseRangesToWrite(file, v2source, isEffectSeq, extendedRanges, controllerRanges);
         if (newRanges.empty() && isEffectSeq) {
             // The effect touches none of this controller's channels, so it needs no file.
+            lastUploadNoChannels = true;
             if (tempFileName != "") {
                 { std::error_code ec; std::filesystem::remove(tempFileName, ec); }
                 tempFileName = "";
