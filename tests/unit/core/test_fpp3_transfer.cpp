@@ -463,6 +463,24 @@ TEST_CASE("Sequence upload of a v1 file and an effect sequence", "[fpp3][transfe
         DrainCurls();
         CHECK(srv.Count("PATCH", "/api/file/effects") == 1);
     }
+    SECTION("an .eseq is not added to the playlist") {
+        auto path = WriteSeq(dir.path / "fx.eseq", 2, FSEQFile::CompressionType::zstd, 60, 2, 50, true);
+        std::unique_ptr<FSEQFile> file(FSEQFile::openFSEQFile(path));
+        auto f = MakeFpp(srv, 9);
+        f->PrepareUploadSequence(file.get(), path, "", 2, FSEQFile::CompressionType::zstd, false);
+        f->FinalizeUploadSequence();
+        auto seqPath = WriteSeq(dir.path / "show.fseq");
+        std::unique_ptr<FSEQFile> seq(FSEQFile::openFSEQFile(seqPath));
+        f->PrepareUploadSequence(seq.get(), seqPath, "", 2, FSEQFile::CompressionType::zstd, false);
+        f->FinalizeUploadSequence();
+        DrainCurls();
+        CHECK(f->sequences.count("fx.eseq") == 0);
+        CHECK(f->sequences.count("show.fseq") == 1);
+        f->UploadPlaylist("Main");
+        auto main = srv.LastJson("POST", "/api/playlist/Main")["mainPlaylist"];
+        REQUIRE(main.size() == 1);
+        CHECK(main[0]["sequenceName"] == "show.fseq");
+    }
     SECTION("an effect sequence that touches none of the controller's channels needs no file") {
         auto path = WriteSeq(dir.path / "fx.fseq", 2, FSEQFile::CompressionType::zstd, 60, 2, 50, true);
         {
