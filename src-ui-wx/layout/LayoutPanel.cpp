@@ -9841,6 +9841,19 @@ void LayoutPanel::OnNewModelTypeButtonClicked(wxCommandEvent& event) {
     }
 }
 
+void LayoutPanel::ExitModelDrawMode() {
+    for (const auto& it : buttons) {
+        if (it->GetState()) {
+            it->SetState(0);
+        }
+    }
+    selectedButton = nullptr;
+    selectedDmxModelType = "";
+    _lastXlightsModel = "";
+    modelPreview->SetCursor(wxCURSOR_DEFAULT);
+    modelPreview->Refresh();
+}
+
 void LayoutPanel::BeginImportModelFromFile(const std::string& xmodelPath) {
     // Drive the existing "Import Custom" click-to-place flow with a known file
     // instead of prompting for one. Mirrors OnNewModelTypeButtonClicked selecting
@@ -10355,6 +10368,8 @@ void LayoutPanel::OnCharHook(wxKeyEvent& event) {
         case WXK_ESCAPE:
             if (m_polyline_active) {
                 FinalizeModel();
+            } else if (_newModel == nullptr && (selectedButton != nullptr || selectedDmxModelType != "")) {
+                ExitModelDrawMode();
             } else if (is_3d) {
                 if (editing_models) {
                     UnSelectAllModelsInTree();
