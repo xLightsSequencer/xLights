@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
 
+    -bug (derwin12)              FPP Connect: with UDP Out set to Proxied, an xLights Only controller behind the
+                                 FPP no longer adds its channels to that FPP's sparse fseq
     -bug (MrPierreB)             Position zones on DMX moving head advanced models were not applied when
                                  the effect was placed on a group containing the model; zones are now
                                  applied for every DmxMovingHeadAdv member of a group buffer

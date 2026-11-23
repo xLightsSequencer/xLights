@@ -2544,16 +2544,11 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
         }
     }
 
-    nlohmann::json f = CreateUniverseFile(selected, false);
-
+    // Only fully Active controllers add to the sparse ranges; an xLights Only
+    // remote plays its own fseq, so this FPP never outputs its channels.
     std::map<int, int> rng;
     FillRanges(rng);
-    for (int x = 0; x < (int)f["channelOutputs"][0]["universes"].size(); x++) {
-        nlohmann::json u = f["channelOutputs"][0]["universes"][x];
-        int const start = u["startChannel"].get<int>() - 1;
-        int const len = u["channelCount"].get<int>();
-        rng[start] = len;
-    }
+    nlohmann::json f = CreateUniverseFile(selected, false, &rng);
     SetNewRanges(rng);
 
     return UploadUDPOut(f);
@@ -2655,6 +2650,15 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
 
         // Get universes based on IP
         std::list<Output*> outputs = eth->GetOutputs();
+        // Ranges come from every output, not the universe entries: same-sized
+        // universes collapse into one entry carrying only the first one's size.
+        if (rngs && !input && controllerEnabled == Controller::ACTIVESTATE::ACTIVE) {
+            for (const auto& it : outputs) {
+                if (it->GetChannels() > 0) {
+                    (*rngs)[it->GetStartChannel() - 1] = it->GetChannels();
+                }
+            }
+        }
         for (const auto& it : outputs) {
             int c = it->GetStartChannel();
 
@@ -2672,10 +2676,6 @@ nlohmann::json FPP::CreateUniverseFile(const std::list<Controller*>& selected, b
             universe["priority"] = 0;
             universe["deDuplicate"] = eth->IsSuppressDuplicateFrames() ? 1 : 0;
             universe["monitor"] = eth->IsMonitoring() ? 1 : 0;
-
-            if (rngs && it->GetChannels() > 0 && controllerEnabled == Controller::ACTIVESTATE::ACTIVE) {
-                (*rngs)[c] = c + it->GetChannels() - 1;
-            }
 
             if (it->GetType() == OUTPUT_E131) {
                 universe["type"] = (int)(it->GetIP() != "MULTICAST" ? 1 : 0);

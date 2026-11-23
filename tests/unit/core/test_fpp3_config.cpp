@@ -99,10 +99,10 @@ TEST_CASE("FPP universe file for unicast and multicast E1.31", "[fpp3][config][u
     CHECK(u[2]["active"] == 0);
     CHECK(u[2]["universeCount"] == 2);
     CHECK(u[2]["description"] == "Multi_Cast"); // & < > are replaced
-    // only active controllers count towards the ranges
+    // only active controllers count towards the ranges, as 0-based start -> length
     CHECK(rngs.size() == 2);
-    CHECK(rngs[1] == 510);
-    CHECK(rngs[511] == 610);
+    CHECK(rngs[0] == 510);
+    CHECK(rngs[510] == 100);
 
     auto in = f->CreateUniverseFile(uni, true);
     CHECK(in.contains("channelOutputs")); // the single controller form always builds outputs
@@ -219,6 +219,43 @@ TEST_CASE("FPP UploadUDPOutputsForProxy sends the controllers it proxies", "[fpp
     REQUIRE(u.size() == 1);
     CHECK(u[0]["description"] == "Behind");
     CHECK(f->ranges == "0-509,2000-2099");
+}
+
+TEST_CASE("FPP universe ranges cover every universe of a collapsed controller", "[fpp3][config][universes]") {
+    InitLoggers();
+    OutputManager om;
+    auto* c = AddController(om, R"(<Controller Id="1" Name="Same" Type="Ethernet" Protocol="E131" IP="10.0.0.30" ActiveState="Active">
+        <network NetworkType="E131" ComPort="10.0.0.30" BaudRate="1" MaxChannels="510"/>
+        <network NetworkType="E131" ComPort="10.0.0.30" BaudRate="2" MaxChannels="510"/>
+        <network NetworkType="E131" ComPort="10.0.0.30" BaudRate="3" MaxChannels="510"/></Controller>)");
+    FppServer srv;
+    auto f = MakeFpp(srv, 9);
+    std::map<int, int> rngs;
+    auto u = Universes(f->CreateUniverseFile(std::list<Controller*>{ c }, false, &rngs));
+    REQUIRE(u.size() == 1);
+    CHECK(u[0]["universeCount"] == 3);
+    f->ranges = "";
+    f->SetNewRanges(rngs);
+    CHECK(f->ranges == "0-1529");
+}
+
+TEST_CASE("FPP UploadUDPOutputsForProxy leaves xLights Only controllers out of the ranges", "[fpp3][config][universes]") {
+    InitLoggers();
+    FppServer srv;
+    OutputManager om;
+    AddController(om, R"(<Controller Id="1" Name="Behind" Type="Ethernet" Protocol="E131" IP="198.51.100.2" FPPProxy=")" + srv.Address() +
+                          R"(" ActiveState="Active"><network NetworkType="E131" ComPort="198.51.100.2" BaudRate="1" MaxChannels="510"/></Controller>)");
+    AddController(om, R"(<Controller Id="2" Name="Remote" Type="Ethernet" Protocol="DDP" IP="198.51.100.4" FPPProxy=")" + srv.Address() +
+                          R"(" ActiveState="xLights Only"><network NetworkType="DDP" ComPort="198.51.100.4" BaudRate="2" MaxChannels="3000"/></Controller>)");
+    auto f = MakeFpp(srv, 9);
+    f->ranges = "";
+    CHECK_FALSE(f->UploadUDPOutputsForProxy(&om));
+    auto u = srv.LastJson("POST", "/api/channel/output/universeOutputs")["channelOutputs"][0]["universes"];
+    REQUIRE(u.size() == 2);
+    CHECK(u[1]["description"] == "Remote");
+    CHECK(u[1]["active"] == 0);
+    // the remote plays its own fseq, so its channels stay out of this FPP's sparse file
+    CHECK(f->ranges == "0-509");
 }
 
 TEST_CASE("FPP SetInputUniversesBridge", "[fpp3][config][universes]") {
