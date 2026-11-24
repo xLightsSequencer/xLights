@@ -2450,8 +2450,9 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                         if (el == nullptr) continue;
                         for (int i = 0; i < el->GetEffectCount(); i++) {
                             Effect* e = el->GetEffect(i);
-                            if (e->GetSelected() != EFFECT_NOT_SELECTED)
-                                mAdditiveDragBaseSelection.push_back(e);
+                            int selection = e->GetSelected();
+                            if (selection != EFFECT_NOT_SELECTED)
+                                mAdditiveDragBaseSelection.emplace_back(e, selection);
                         }
                     }
                     EstablishSelectionRectangle();
@@ -4241,11 +4242,13 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             UnsetToolTip();
             mDragging = false;
             mDragThresholdExceeded = false;
-            mDragAddToSelection = false;
-            mAdditiveDragBaseSelection.clear();
-            if ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
+            if (mAdditiveDragBaseSelection.empty() &&
+                ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) ||
+                 mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
                 checkForEmptyCell = true;
             }
+            mDragAddToSelection = false;
+            mAdditiveDragBaseSelection.clear();
         } else if (!event.ControlDown()) {
             checkForEmptyCell = true;
         }
@@ -7385,13 +7388,22 @@ void EffectsGrid::UpdateZoomPosition(int time) const {
     mTimeline->SetZoomMarkerMS(time);
 }
 
-void EffectsGrid::EstablishSelectionRectangle() {
-    if (mDragAddToSelection) {
-        for (Effect* e : mAdditiveDragBaseSelection)
-            e->SetSelected(EFFECT_SELECTED);
-    } else {
-        mSequenceElements->UnSelectAllEffects();
+int EffectsGrid::RestoreAdditiveDragBaseSelection() const {
+    if (!mDragging || !mDragAddToSelection) {
+        return 0;
     }
+    int restored = 0;
+    for (const auto& [effect, selection] : mAdditiveDragBaseSelection) {
+        if (effect->GetSelected() == EFFECT_NOT_SELECTED) {
+            ++restored;
+        }
+        effect->SetSelected(selection);
+    }
+    return restored;
+}
+
+void EffectsGrid::EstablishSelectionRectangle() {
+    mSequenceElements->UnSelectAllEffects();
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
     int row1 = GetRow(mDragStartY);
     if (row1 >= mSequenceElements->GetNumberOfTimingRows()) {
@@ -7437,6 +7449,7 @@ void EffectsGrid::EstablishSelectionRectangle() {
         UpdateSelectedEffects();
     } else {
         mSequenceElements->SelectEffectsInRowAndTimeRange(row1 - first_row, row2 - first_row, startTime, endTime);
+        RestoreAdditiveDragBaseSelection();
     }
     SetRCToolTip();
 }
@@ -7447,10 +7460,6 @@ void EffectsGrid::UpdateSelectionRectangle() {
     }
     UnselectEffect();
     mSequenceElements->UnSelectAllEffects();
-    if (mDragAddToSelection) {
-        for (Effect* e : mAdditiveDragBaseSelection)
-            e->SetSelected(EFFECT_SELECTED);
-    }
 
     if (GetRow(mDragEndY) < mSequenceElements->GetNumberOfTimingRows()) {
         mRangeEndRow = GetRow(mDragEndY);
@@ -7471,6 +7480,8 @@ void EffectsGrid::UpdateSelectionRectangle() {
                 mRangeEndCol = timingIndex;
             }
             UpdateSelectedEffects();
+        } else {
+            RestoreAdditiveDragBaseSelection();
         }
     } else {
         int row1 = mRangeStartRow;
@@ -7484,7 +7495,9 @@ void EffectsGrid::UpdateSelectionRectangle() {
         if (startTime > endTime) {
             std::swap(startTime, endTime);
         }
-        if (mSequenceElements->SelectEffectsInRowAndTimeRange(row1, row2, startTime, endTime)) {
+        int numSelected = mSequenceElements->SelectEffectsInRowAndTimeRange(row1, row2, startTime, endTime);
+        RestoreAdditiveDragBaseSelection();
+        if (numSelected > 0) {
             SetFirstEffectSelected();
         }
     }
@@ -7531,14 +7544,17 @@ void EffectsGrid::UpdateSelectedEffects() {
         int adjusted_start_row = std::max(start_row, mSequenceElements->GetNumberOfTimingRows());
         if (end_row >= adjusted_start_row) {
             int num_selected = mSequenceElements->SelectEffectsInRowAndColumnRange(adjusted_start_row, end_row, start_col, end_col);
+            num_selected += RestoreAdditiveDragBaseSelection();
             if (num_selected != 1) // we don't know what to preview unless only 1 effect is selected
             {
                 UnselectEffect(true);
             } else {
                 SetFirstEffectSelected();
             }
+            return;
         }
     }
+    RestoreAdditiveDragBaseSelection();
 }
 
 int EffectsGrid::GetEffectRow(Effect* ef) {

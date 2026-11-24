@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
+    -bug (Upercat)               Sequencer: keep previously selected effect edges when adding to the selection with Ctrl+drag
     -bug (derwin12)              Link controller upload preference changes are saved again
     -enh (dkulp)                 Live collaboration (beta, off by default): host or join a session on the local
                                  network and edit one sequence together (File > Collaborate)
