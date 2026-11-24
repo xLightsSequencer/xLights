@@ -28,15 +28,15 @@ namespace {
 struct FakeBaldrick {
     std::string settings = R"({"ports":[{"port_type":"ws2811","models":[{"name":"Arch","test_colour":5}]},{"port_type":"relay"},{"port_type":"ws2811"}]})";
     std::string putReply = "OK";
-    // GET /api/board/info: 404 is firmware from before the endpoint
+    // GET /turnip_api/board/info: 404 is firmware from before the endpoint
     int infoStatus = 404;
     std::string info;
-    int busyReplies = 0; // how many 503s to answer /api/board/info with first
+    int busyReplies = 0; // how many 503s to answer /turnip_api/board/info with first
     std::mutex m;
     std::string lastPut;
     FakeHttpServer srv{ [this](const FakeRequest& r) {
         FakeResponse resp;
-        if (r.path == "/api/board/info") {
+        if (r.path == "/turnip_api/board/info") {
             std::lock_guard<std::mutex> l(m);
             if (busyReplies > 0) {
                 busyReplies--;
@@ -172,7 +172,7 @@ TEST_CASE("ILightThat3 SetOutputs refuses grouping the board cannot hold", "[ven
 TEST_CASE("ILightThat3 SetOutputs leaves out settings the firmware does not list", "[vendors3][ilightthat3]") {
     VendorsTestInit();
     FakeBaldrick fb;
-    SECTION("no /api/board/info") {
+    SECTION("no /turnip_api/board/info") {
     }
     SECTION("no capabilities") {
         fb.Capabilities("");
@@ -206,7 +206,7 @@ TEST_CASE("ILightThat3 SetOutputs refuses settings the firmware cannot apply", "
     VendorsTestInit();
     FakeBaldrick fb;
     VendorShow s("ILightThat", "Baldrick8", "", 1);
-    SECTION("grouping on firmware without /api/board/info") {
+    SECTION("grouping on firmware without /turnip_api/board/info") {
         s.Pixels("Arch", 1, 20, 1, "groupCount=\"3\"");
         ILightThat c(fb.srv.Address(), "");
         CHECK_FALSE(c.SetOutputs(&s.mm, &s.om, s.ctl, &s.ui));
@@ -272,7 +272,7 @@ TEST_CASE("ILightThat3 SetOutputs refuses a port grouping and nulls make too lon
     }
 }
 
-TEST_CASE("ILightThat3 SetOutputs needs a readable /api/board/info", "[vendors3][ilightthat3]") {
+TEST_CASE("ILightThat3 SetOutputs needs a readable /turnip_api/board/info", "[vendors3][ilightthat3]") {
     VendorsTestInit();
     FakeBaldrick fb;
     VendorShow s("ILightThat", "Baldrick8", "", 1);

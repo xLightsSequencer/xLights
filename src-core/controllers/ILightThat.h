@@ -20,7 +20,7 @@ private:
 
     int _model_test_default_col_idx = 0;
 
-    // The model settings the board's firmware applies, from GET /api/board/info
+    // The model settings the board's firmware applies, from GET /turnip_api/board/info
     struct BoardCapabilities {
         bool grouping = false;
         bool nulls = false;
