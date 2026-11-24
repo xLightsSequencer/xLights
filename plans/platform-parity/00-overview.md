@@ -315,8 +315,7 @@ batch-render retry (09).
 
 Not parity items — genuine desktop bugs surfaced by the evidence standard:
 
-- "Link controller upload" preference discards user changes (`SetLinkedControllerUpload`
-  declared, never defined, never called) — 11.
+- ~~"Link controller upload" preference discards user changes~~ — fixed (setter restored) — 11.
 - "Zoom To Cursor" checkbox never restored — reopening Preferences + OK silently re-enables — 11.
 - Three dead `SeqExportDialog` entries (LOR/Vixen/fseq added then always deleted) — 08.
 - Sequence Settings → Timings → New is a stale copy of the add-track flow (omits

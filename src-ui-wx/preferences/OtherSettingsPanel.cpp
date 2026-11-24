@@ -317,6 +317,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetUseGPURendering(GPURenderCheckbox->IsChecked());
     frame->SetShadersOnBackgroundThreads(ShaderCheckbox->IsChecked());
     frame->SetUserEMAIL(eMailTextControl->GetValue());
+    frame->SetLinkedControllerUpload(Choice_LinkControllerUpload->GetStringSelection());
     frame->SetRenameModelAliasPromptBehavior(Choice_AliasPromptBehavior->GetStringSelection());
     frame->SetKeybindingsLocation(Choice_KeybindingsLocation->GetStringSelection());
     frame->SetLayoutDoubleClickAction(Choice_LayoutDoubleClickAction->GetStringSelection());
