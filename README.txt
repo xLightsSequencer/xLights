@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  "Skipped - no channels on this controller" instead of "Already up to date"
     -bug (dkulp)                 FPP Connect could crash during upload when an FPP asked for a password
 
+    -bug (MrPierreB)             Bulk editing a DMX channel slider could incorrectly clear value curves on
+                                 unrelated channels of other selected effects
     -enh (derwin12)              Layout: Esc exits the active model drawing tool (e.g. Single Line)
     -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
                                  refusing settings the board's firmware does not support

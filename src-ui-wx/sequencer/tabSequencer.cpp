@@ -3227,6 +3227,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
             if (vcb != nullptr) {
                 vcb->SetValue(value.ToStdString());
+                vcb->GetValue()->SetId(vcb->GetName().ToStdString());
             }
         } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
             wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);

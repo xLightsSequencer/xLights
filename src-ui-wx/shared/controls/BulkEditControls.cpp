@@ -593,7 +593,7 @@ void BulkEditSlider::OnSliderPopup(wxCommandEvent &event)
                     wxASSERT(false);
                 }
 
-                vcid = vcb->GetValue()->GetId();
+                vcid = vcb->GetName().ToStdString();
                 dlg.BitmapButton_VC->GetValue()->SetId(vcid);
                 vcid = FixIdForPanel(GetPanelName(GetParent()), vcid);
 
