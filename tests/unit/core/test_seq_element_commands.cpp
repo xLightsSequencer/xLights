@@ -892,6 +892,7 @@ TEST_CASE("NewElementsRecorder records a populated new track as one step", "[seq
     f.Exec().RemoveObserver(&rec);
 }
 
+#ifndef NDEBUG
 TEST_CASE("NewElementsRecorder reports a direct change to an existing row", "[seq][elements][undo]") {
     SeqFixture f;
     TimingElement* beats = f.Timing("Beats");
@@ -916,6 +917,7 @@ TEST_CASE("NewElementsRecorder reports a direct change to an existing row", "[se
     }
     CHECK(SeqMutationGuard::ViolationCount() == 1);
 }
+#endif
 
 TEST_CASE("NewElementsRecorder inside an open batch or preview takes command edits for recorded ones", "[seq][elements][undo]") {
     // The outer batch or preview holds back the notification, so the
@@ -953,10 +955,13 @@ TEST_CASE("NewElementsRecorder inside an open batch or preview takes command edi
         REQUIRE(f.Exec().AddEffect(tree->GetEffectLayer(0), "On", "", "", 400, 500, 0, false) != nullptr);
         f.se.GetTimingElement("Beats")->GetEffectLayer(0)->AddEffect(0, "x", "", "", 0, 100, 0, false);
     }
+#ifndef NDEBUG
     CHECK(SeqMutationGuard::ViolationCount() == 1);
+#endif
     f.Exec().RemoveObserver(&rec);
 }
 
+#ifndef NDEBUG
 TEST_CASE("NewElementsRecorder reports a direct change to a submodel or strand row", "[seq][elements][undo]") {
     Show show;
     SeqFixture f(&show);
@@ -989,6 +994,7 @@ TEST_CASE("NewElementsRecorder reports a direct change to a submodel or strand r
     }
     CHECK(SeqMutationGuard::ViolationCount() == 0);
 }
+#endif
 
 TEST_CASE("Nested NewElementsRecorders record once, in the outer step", "[seq][elements][undo]") {
     SeqFixture f;
