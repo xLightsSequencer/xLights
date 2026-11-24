@@ -267,8 +267,8 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     prgs.Pulse("Discovering FPP Instances");
     prgs.Show();
 
-    wxDiscoveryDelegate delegate(this);
-    instances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
+    _discoveryDelegate = std::make_unique<wxDiscoveryDelegate>(this);
+    instances = _frame->DiscoverFPPInstances(_discoveryDelegate.get(), _targetIp);
 
     wxPanel *p1 = AddInstanceHeader("Upload", "Enable to Upload Files/Configs to this FPP Device.");
     p1->Connect(wxEVT_CONTEXT_MENU, (wxObjectEventFunction)& FPPConnectDialog::UploadPopupMenu, nullptr, this);
@@ -2229,8 +2229,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 
     std::string fppConnectIP = "";
     prgs.Show();
-    wxDiscoveryDelegate delegate(this);
-    std::list<FPP*> newInstances = _frame->DiscoverFPPInstances(&delegate, _targetIp);
+    std::list<FPP*> newInstances = _frame->DiscoverFPPInstances(_discoveryDelegate.get(), _targetIp);
     
     for (FPP* fpp : newInstances) {
         bool found = false;

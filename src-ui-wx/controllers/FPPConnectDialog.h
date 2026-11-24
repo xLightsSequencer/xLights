@@ -3,6 +3,7 @@
 
 #include <wx/progdlg.h>
 #include <list>
+#include <memory>
 #include <set>
 
 //(*Headers(FPPConnectDialog)
@@ -85,6 +86,9 @@ class FPPConnectDialog: public wxDialog
 		static const wxWindowID ID_BUTTON_Upload;
 		//*)
 
+        // Every FPP in `instances` keeps a raw pointer to this as its
+        // _authDelegate, so it has to live as long as the dialog does.
+        std::unique_ptr<DiscoveryDelegate> _discoveryDelegate;
         std::list<FPP*> instances;
         OutputManager* _outputManager;
         std::string _targetIp;

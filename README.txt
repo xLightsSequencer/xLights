@@ -17,6 +17,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  as sequence entries (#7411)
     -bug (derwin12)              FPP Connect: an effect sequence with no channels on a controller now reports
                                  "Skipped - no channels on this controller" instead of "Already up to date"
+    -bug (dkulp)                 FPP Connect could crash during upload when an FPP asked for a password
 
     -enh (derwin12)              Layout: Esc exits the active model drawing tool (e.g. Single Line)
     -enh (PeteMatthews)          ILightThat controllers: upload grouping, zig zag and start/end null pixels,
