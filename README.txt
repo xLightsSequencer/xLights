@@ -10,6 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.22  November ??, 2026
+
+
 2026.21  November 24, 2026
 
     -change (scott)              Controller Open / Open Proxy buttons stay enabled while outputting
