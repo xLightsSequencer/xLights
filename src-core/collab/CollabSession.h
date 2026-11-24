@@ -462,6 +462,7 @@ protected:
     virtual void OnTransportPeer(PeerId peer, PeerEvent e) = 0;
     virtual void OnTransportBlob(PeerId from, BlobId id, const std::string& path) = 0;
     virtual void OnBlobProgress(PeerId /*from*/, BlobId /*id*/, uint64_t /*received*/, uint64_t /*size*/) {}
+    void OnBlobFailed(PeerId from, BlobId id, const std::string& why);
     virtual void OnBlobDone(PeerId /*to*/, BlobId /*id*/, bool /*sent*/) {}
     virtual void OnSendFailed(PeerId to, const Message& m, const std::string& reason) = 0;
     // A snapshot or welcome blob: the parts, each a length and the bytes.
@@ -513,6 +514,7 @@ protected:
 
 private:
     bool _ownsHandlers = true;
+    bool _diskErrorShown = false; // the notice for an incoming file that couldn't be saved
     std::string _sessionFolder;
     bool _keepFiles = false;
     BlobId _nextBlob = 0;

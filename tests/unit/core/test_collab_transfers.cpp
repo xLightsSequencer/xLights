@@ -232,6 +232,48 @@ TEST_CASE("A snapshot the transport loses without a word is sent again when aske
     CHECK(sim.net.BlobsSent(PeerOf(h)) == 2);
 }
 
+TEST_CASE("Files the joiner can't save are asked for again with one notice per run of failures", "[collab][collab_transfer]") {
+    MediaShow ms;
+    TempDir devDir;
+    CopyShowFiles(ms.show.path, devDir.path, { kLayoutFile, kNetworksFile });
+    TempDir session;
+    SessionOptions fetching = Opts();
+    fetching.fetchFiles = true;
+    fetching.sessionFolder = (session.path / "a").string();
+    fetching.fileRetryMs = 2000;
+    Sim sim(ms.show, Slow(0), Opts());
+    Node& h = sim.AddHost("", std::nullopt, ms.xsq);
+    // From the host: the snapshot can't be saved twice, then arrives; the
+    // next file then fails once more.
+    int delivered = 0;
+    std::vector<int> failed;
+    sim.net.failBlobSave = [&](PeerId from, PeerId, BlobId) {
+        if (from != PeerOf(h)) {
+            return false;
+        }
+        int n = delivered++;
+        bool fail = n == 0 || n == 1 || n == 3;
+        if (fail) {
+            failed.push_back(n);
+        }
+        return fail;
+    };
+    Node& a = sim.AddClientOn(devDir.path.string(), fetching);
+    REQUIRE(sim.Quiesce(60000));
+    REQUIRE(a.Client().IsActive());
+    CHECK(failed == std::vector<int>{ 0, 1, 3 });
+    CHECK(a.Client().GetJoinReport().fetched == std::vector<std::string>{ "Images/a.png", "song.wav" });
+    std::vector<std::string> disk;
+    for (const auto& [reason, text] : a.notices) {
+        if (reason == Reason::DiskError) {
+            disk.push_back(text);
+        }
+    }
+    REQUIRE(disk.size() == 2);
+    CHECK(disk[0].find("couldn't be saved on this device") != std::string::npos);
+    CHECK(h.notices.empty());
+}
+
 TEST_CASE("A file the transport loses without a word is sent again when asked", "[collab][collab_transfer]") {
     MediaShow ms;
     TempDir devDir;

@@ -65,6 +65,10 @@ public:
     // that has stopped reporting has stalled; one that reports is not to be
     // asked for again.
     std::function<void(PeerId from, BlobId id, uint64_t received, uint64_t size)> onBlobProgress;
+    // Receiving: a blob from `from` arrived but couldn't be saved here (a
+    // local disk problem, not the peer's fault). The connection stays up; the
+    // session asks for the file again once it sees the transfer stall.
+    std::function<void(PeerId from, BlobId id, const std::string& why)> onBlobFailed;
     // Sending: the transport is done with a blob given to SendBlob: all of
     // it went out (`sent`), or none or only part of it ever will. Every
     // SendBlob gets exactly one, unless the peer goes away first.
@@ -146,6 +150,9 @@ public:
     // delivery, no onBlobDone), as a transport that drops a transfer
     // silently would.
     std::function<bool(PeerId from, PeerId to, BlobId id)> loseBlob;
+    // True: the blob arrives but `to` can't save it (onBlobFailed instead of
+    // onBlob), as after a local disk error.
+    std::function<bool(PeerId from, PeerId to, BlobId id)> failBlobSave;
     // Called with each frame as it is sent; may rewrite or clear it (an
     // empty frame is dropped). For corruption tests.
     std::function<void(PeerId from, PeerId to, std::string& frame)> tamper;

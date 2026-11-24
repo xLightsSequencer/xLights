@@ -285,6 +285,7 @@ inline constexpr const char* NotInManifest = "not_in_manifest";
 inline constexpr const char* Unreadable = "unreadable";
 // Reject / Refuse / Notice: a message larger than a transport may send.
 inline constexpr const char* TooLarge = "too_large";
+inline constexpr const char* DiskError = "disk_error";
 // Bye: the host stopped hearing from this device and dropped it.
 inline constexpr const char* TimedOut = "timed_out";
 // Bye: a message from a connection that isn't in the session.

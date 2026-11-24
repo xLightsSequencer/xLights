@@ -15,9 +15,11 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <deque>
 #include <filesystem>
 #include <map>
@@ -502,6 +504,15 @@ private:
         Post([from, id, received, size](INetTransport& t) {
             if (t.onBlobProgress) {
                 t.onBlobProgress(from, id, received, size);
+            }
+        });
+    }
+
+    void PostBlobFailed(PeerId from, BlobId id, const std::string& why) {
+        spdlog::warn("collab group: {}", why);
+        Post([from, id, why](INetTransport& t) {
+            if (t.onBlobFailed) {
+                t.onBlobFailed(from, id, why);
             }
         });
     }
@@ -1234,7 +1245,7 @@ private:
         r.inPath = (fs::path(Folder()) / ("in-" + std::to_string(++_files))).string();
         r.inFile = fopen(r.inPath.c_str(), "wb");
         if (r.inFile == nullptr) {
-            spdlog::warn("collab group: could not create {} for an incoming file", r.inPath);
+            PostBlobFailed(r.id, id, "Couldn't save a file from the session (couldn't create " + r.inPath + ": " + std::strerror(errno) + ").");
             r.inPath.clear();
             return;
         }
@@ -1259,7 +1270,7 @@ private:
             AckDropped(r, id);
             return;
         } else if (fwrite(p.data() + 8, 1, n, r.inFile) != n) {
-            spdlog::warn("collab group: could not write an incoming file");
+            PostBlobFailed(r.id, id, "Couldn't save a file from the session (couldn't write " + r.inPath + ": " + std::strerror(errno) + ").");
             r.DropIn();
             AckDropped(r, id);
             return;
@@ -1290,6 +1301,7 @@ private:
         std::string path = r.inPath;
         r.inPath.clear();
         if (!ok) {
+            PostBlobFailed(r.id, id, "Couldn't save a file from the session (couldn't finish writing " + path + ": " + std::strerror(errno) + ").");
             std::error_code ec;
             fs::remove(path, ec);
             return;
@@ -1332,7 +1344,7 @@ private:
         std::error_code ec;
         fs::rename(path, copy, ec);
         if (ec && !CopyInto(path, copy)) {
-            spdlog::warn("collab group: could not keep an incoming attachment");
+            PostBlobFailed(r->id, id, "Couldn't save a file from the session (couldn't keep it as " + copy + ").");
             return;
         }
         PostBlob(r->id, id, copy);

@@ -142,6 +142,7 @@ CollabParticipant::~CollabParticipant() {
         _transport.onPeer = nullptr;
         _transport.onBlob = nullptr;
         _transport.onBlobProgress = nullptr;
+        _transport.onBlobFailed = nullptr;
         _transport.onBlobDone = nullptr;
         _transport.onSendFailed = nullptr;
     }
@@ -189,10 +190,27 @@ std::string CollabParticipant::NewSessionFile(const std::string& sub, const std:
 void CollabParticipant::InstallHandlers() {
     _transport.onMessage = [this](PeerId from, const Message& m) { OnTransportMessage(from, m); };
     _transport.onPeer = [this](PeerId peer, PeerEvent e) { OnTransportPeer(peer, e); };
-    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) { OnTransportBlob(from, id, path); };
+    _transport.onBlob = [this](PeerId from, BlobId id, const std::string& path) {
+        _diskErrorShown = false;
+        OnTransportBlob(from, id, path);
+    };
     _transport.onBlobProgress = [this](PeerId from, BlobId id, uint64_t received, uint64_t size) { OnBlobProgress(from, id, received, size); };
+    _transport.onBlobFailed = [this](PeerId from, BlobId id, const std::string& why) { OnBlobFailed(from, id, why); };
     _transport.onBlobDone = [this](PeerId to, BlobId id, bool sent) { OnBlobDone(to, id, sent); };
     _transport.onSendFailed = [this](PeerId to, const Message& m, const std::string& reason) { OnSendFailed(to, m, reason); };
+}
+
+void CollabParticipant::OnBlobFailed(PeerId /*from*/, BlobId /*id*/, const std::string& why) {
+    Log(why);
+    // Its retry may well fail the same way: say it once, until a file gets
+    // through again.
+    if (_diskErrorShown) {
+        return;
+    }
+    _diskErrorShown = true;
+    if (_events.onNotice) {
+        _events.onNotice(Reason::DiskError, "A file from the session couldn't be saved on this device. Check that it has free disk space; the file will be asked for again.");
+    }
 }
 
 bool CollabParticipant::WriteParts(const std::string& path, const std::vector<const std::string*>& parts) {

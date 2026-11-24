@@ -745,6 +745,38 @@ TEST_CASE("Collab an incoming file that can't be written is a disk error, not th
     }
 }
 
+TEST_CASE("Collab LAN an incoming file that can't be saved is reported and the link stays up", "[collab][net]") {
+    TestLoop loop;
+    Peer h(loop, 0), c(loop, 1);
+    TempDir dir;
+    Host(h);
+    PeerId p = Join(loop, h, c);
+    std::vector<std::pair<BlobId, std::string>> failed;
+    c.t->onBlobFailed = [&](PeerId from, BlobId id, const std::string& why) {
+        CHECK(from == kLanHostPeer);
+        failed.emplace_back(id, why);
+    };
+    // Nothing can be created where incoming files go.
+    std::string folder = Lan::BlobFolder(*c.t);
+    std::filesystem::remove_all(folder);
+    std::ofstream(folder) << "not a folder";
+    h.t->SendBlob(p, 31, dir.Write("a.bin", RandomBytes(3u << 20, 4)));
+    REQUIRE(loop.Until([&] { return failed.size() == 1; }, 20000));
+    CHECK(failed[0].first == 31);
+    CHECK(failed[0].second.find("Couldn't save a file") != std::string::npos);
+    CHECK(c.blobs.empty());
+
+    std::filesystem::remove(folder);
+    std::filesystem::create_directories(folder);
+    std::string small = RandomBytes(1000, 5);
+    h.t->SendBlob(p, 32, dir.Write("b.bin", small));
+    h.t->Send(p, Ping(1));
+    REQUIRE(loop.Until([&] { return c.blobs.size() == 1 && c.messages.size() == 1; }, 20000));
+    CHECK(c.blobs[0].id == 32);
+    CHECK(c.blobs[0].content == small);
+    CHECK(failed.size() == 1);
+}
+
 TEST_CASE("Collab LAN a file that can't be cloned is copied off the caller's thread", "[collab][net]") {
     TestLoop loop;
     Peer h(loop, 0), c(loop, 1);

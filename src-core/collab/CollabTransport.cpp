@@ -280,6 +280,10 @@ void LoopbackNetwork::Deliver(const Frame& f) {
             if (dest->onPeer) {
                 dest->onPeer(f.from, f.peerEvent);
             }
+        } else if (f.blob && failBlobSave && failBlobSave(f.from, f.to, f.blobId)) {
+            if (dest->onBlobFailed) {
+                dest->onBlobFailed(f.from, f.blobId, "Couldn't save a file from the session (test).");
+            }
         } else if (f.blob) {
             ++_blobsDelivered;
             if (dest->onBlob) {

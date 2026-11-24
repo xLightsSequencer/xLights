@@ -737,6 +737,11 @@ private:
                 // Not the peer's fault: the connection stays, and the session
                 // asks for the file again once it sees the transfer stall.
                 spdlog::warn("collab: dropped a file from peer {}: {}", from, why);
+                Post([from, id, why](INetTransport& t) {
+                    if (t.onBlobFailed) {
+                        t.onBlobFailed(from, id, why);
+                    }
+                });
                 return true;
             default:
                 return false;

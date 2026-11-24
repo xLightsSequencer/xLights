@@ -1032,6 +1032,54 @@ TEST_CASE("Group sessions: without a store files go in chunks that don't hold up
     CHECK(r.g.oversize == 0);
 }
 
+TEST_CASE("Group sessions: an incoming file that can't be saved is reported and the next one arrives", "[collab][group]") {
+    Rig r;
+    r.g.maxMessage = 4096;
+    TempDir dir;
+    Dev& h = r.Add("m-1");
+    Dev& a = r.Add("m-2");
+    r.Host(h);
+    r.Settle();
+    r.Join(a);
+    r.Settle();
+    std::vector<std::pair<PeerId, BlobId>> failed;
+    a.t->onBlobFailed = [&](PeerId from, BlobId id, const std::string& why) {
+        CHECK(why.find("Couldn't save a file") != std::string::npos);
+        failed.emplace_back(from, id);
+    };
+    std::string folder = GroupTest::Folder(*a.t);
+    auto block = [&] {
+        fs::remove_all(folder);
+        std::ofstream(folder) << "not a folder";
+    };
+    auto unblock = [&] {
+        fs::remove(folder);
+        fs::create_directories(folder);
+    };
+    std::string content = RandomBytes(20000, 61);
+    // In chunks, then through the attachment store.
+    for (uint64_t store : { uint64_t(0), uint64_t(8u << 20) }) {
+        INFO("store " << store);
+        r.g.maxAttachment = store;
+        failed.clear();
+        a.blobs.clear();
+        block();
+        h.t->SendBlob(2, 71, dir.Write("x", content));
+        r.Settle();
+        REQUIRE(failed.size() == 1);
+        CHECK(failed[0] == std::make_pair(PeerId(kLanHostPeer), BlobId(71)));
+        CHECK(a.blobs.empty());
+        unblock();
+        h.t->SendBlob(2, 72, dir.Write("y", content));
+        h.t->Send(2, Ping(1));
+        r.Settle();
+        REQUIRE(a.blobs.size() == 1);
+        CHECK(a.blobs[0].id == 72);
+        CHECK(a.blobs[0].content == content);
+        CHECK(failed.size() == 1);
+    }
+}
+
 TEST_CASE("Group sessions: malformed or out-of-place frames are dropped", "[collab][group]") {
     using T = GroupWire::Type;
     Rig r;
