@@ -153,7 +153,9 @@ jobs:
           </PropertyGroup>
           <ItemDefinitionGroup>
             <ClCompile>
-              <DebugInformationFormat>OldStyle</DebugInformationFormat>
+              <!-- No debug info: the Release link writes no PDB, and /Z7 objects
+                   carried it into the LTCG .iobj, which must stay under 4 GB. -->
+              <DebugInformationFormat>None</DebugInformationFormat>
               <MultiProcessorCompilation>false</MultiProcessorCompilation>
               <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
             </ClCompile>
