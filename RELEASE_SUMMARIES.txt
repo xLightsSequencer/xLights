@@ -1,97 +1,79 @@
 === macOS App Store (limit 4000) ===
-xLights 2026.20 - November 12, 2026
+xLights 2026.21 - November 24, 2026
 
 New
-- Faster rendering of many effects, including Shockwave, Color Wash, Bars, Spirals (about 2x), Fan, Galaxy, Morph and Snowflakes, and of animated sub-buffers on large models.
-- Spirals: a new Reverse 3D option chooses which edge of the 3D fade leads.
-- Custom value curves keep points placed at half steps instead of shifting or merging them.
-- Import Effects: preview the vendor's model next to yours, and sort both mapping lists by Name or Master View.
-- Bulk Edit: Edit Properties changes a model type's properties on every selected model of that type at once.
-- SubModels: Symmetrize (Rotational) is back on Circle, Star, Wreath and Spinner models.
-- Media Manager: Re-embed from Disk refreshes an embedded file from its copy on disk.
-- Imported From sequences can be edited in Sequence Settings > Meta Data.
-- The Visualizer warns when many models are hidden because their preview is Unassigned.
-- Bulk Controller Upload: Select All, a filter box, multi-row checking and Invert Selection.
+- Much broader Undo: timing track add/delete/rename/reorder, model add/remove/reorder in the sequence, timing and effect imports, Shift Effects, Convert Data To Effects, Promote Node Effects, effect symbols, tags, song structure, sequence faces and every Media Manager edit can now be undone, each as one step.
+- Shared show folders: changes someone else saves to the layout, controllers or effect presets are merged with yours instead of overwritten. You only choose where you both changed the same thing, and their changes are brought into the open show once playback stops.
+- Shared show folders: you are warned before overwriting someone else's saved changes, warned when opening a sequence someone else has open, and the status bar shows who else is editing the layout or controllers.
+- Autosaves in a shared show folder are kept per computer, and restoring one no longer discards changes someone else saved since.
+- Opening a sequence saved before models were renamed in the layout renames its rows to match instead of asking about missing models.
+- Conflicted copies left by Dropbox, iCloud, OneDrive, Google Drive or Syncthing can be merged back into the layout, controller and preset files.
+- Show files are saved in one step, so a crash or sync client never sees a half-written file.
+- Lyrics: Generate AI Image for Phrase adds a Pictures effect with an AI-generated image for the phrase.
+- Custom Model: drag with the middle mouse button to pan the grid.
+- Layout: Esc exits the active model drawing tool.
+- Controller Visualiser: drag a port's label to move all its models to another port, or back to the model pool.
+- FPP Connect: the upload log shows whether each controller's media was uploaded, already up to date, or not found, and the upload window has a resizable Completed list.
+- ILightThat controllers: upload grouping, zig zag and start/end null pixels.
 
 Changed
-- A single click on the Layout show folder footer opens the Directories dialog.
-- Plasma and Butterfly can differ by one level on a few channels between Intel and Apple Silicon Macs.
+- Controller Open / Open Proxy buttons stay enabled while outputting to lights.
 
 Fixed
-- Effects: fixes for Guitar, Faces blinks, VU Meter, Bars highlights, Single Strand, Galaxy, Ripple, Snowstorm, Text, Video, Moving Head paths and masked transitions on multi-light nodes.
-- Butterfly, Plasma, rotation and zoom render the same with GPU rendering on and off.
-- Custom and Cube buffer styles, rotated buffers and Rotate 90 Flip transforms keep every light inside the buffer.
-- Value curves: wrapped curves, Sine reverse, .xvc import with a negative minimum, and lost points are fixed.
-- Duplicating an effect with Override Timing, and linking an effect to a symbol, no longer wipe settings.
-- Effect grid: Shift+scroll keeps the selection, and Ctrl+Left/Right moves several effects as a group.
-- Timeline tags no longer carry over to the next sequence.
-- Timing and audio: lyric, SRT, Audacity and ElevenLabs import fixes, and better tempo, pitch and key detection.
-- Stem separation uses much less memory.
-- Sparse FSEQ files with more than 255 ranges no longer lose channels.
-- Import: many fixes to SuperStar, Vixen 3, LOR, HLS and Papagayo import; the SuperStar dialog opens quickly on large layouts.
-- Import Effects: matrix faces from the base show folder are kept.
-- Package import keeps face colours, and embedded media no longer shows duplicate copies.
-- Layout: Poly Line channels and light spacing, single-light arches, model start corners, poly line scaling and model groups matching by name prefix are fixed.
-- DMX: moving head preview and channel names, servo offsets shrinking on save, and several DMX model crashes are fixed.
-- PWM ports drive the right channels and show the right colour labels.
-- Controllers: copying and editing controllers keeps their settings, and ArtNet discovery finds every universe.
-- FPP Connect: no longer uses a full CPU core while waiting, plus fixes for capes, virtual matrices, playlists, ESPixelStick and older FPP versions.
-- Falcon, WLED, ESPixelStick, HinksPix, J1Sys, Minleon, Pixlite and other controller uploads no longer crash on unexpected replies.
-- Automation and xlDo fixes, including saveSequence reporting failures.
-- Dialogs no longer open on a monitor that is disconnected.
-- Fixed a large number of crashes, including zooming after replacing the song, lyric search, Layout undo, empty meshes, damaged layout, model and settings files, and corrupt .fseq files.
+- Many Undo fixes: effect settings panel changes are restored exactly, removing a layer brings back its name and effects, Split Effect and Paste as Layers undo in one step, and Undo no longer changes the wrong effect after some edits.
+- Bulk editing a DMX channel slider could clear value curves on other channels.
+- SingleStrand with a 6-colour palette could crash and left out colour 5.
+- Layered Arches with an Inside start rendered Strand effects on the wrong nodes.
+- Moving Head Adv: position zones now apply when the effect is on a group, and the zone indicator sits upright around the yoke again.
+- Shift Effects no longer moves locked effects.
+- Select Effects, Effect Preset previews, AI Lyrics from Audio and AC mode off over a locked effect are fixed.
+- Media: Pictures assist pixel edits to embedded images are saved, Extract All renames SVG, shader and text media, and renaming embedded media works.
+- SubModels: Import Custom Model Overlay honours the chosen position and keeps the outline's shape.
+- Print Layout prints what the preview shows.
+- LOR S5, LMS and HLS import fixes.
+- FPP Connect: playlist, status and discovery fixes, and a crash when an FPP asks for a password.
+- Falcon and HinksPix upload and export fixes.
+- Fixed crashes in bulk editing, Generate Custom Model, layer changes during rendering and starting playback, and a hang when closing on a busy Mac.
 
 === iPad App Store (limit 4000) ===
-xLights 2026.20 - November 12, 2026
+xLights 2026.21 - November 24, 2026
 
 New
-- Faster rendering of many effects, including Shockwave, Color Wash, Bars, Spirals (about 2x), Fan, Galaxy, Morph and Snowflakes, and of animated sub-buffers on large models.
-- Spirals: a new Reverse 3D option chooses which edge of the 3D fade leads.
-- Custom value curves keep points placed at half steps instead of shifting or merging them.
-- SubModels: Symmetrize (Rotational) is back on Circle, Star, Wreath and Spinner models.
-
-Changed
-- Adding a 3D object needs the Default preview in 3D, as on desktop.
+- Much broader Undo and Redo: timing imports, new timing tracks (including AI lyrics, tempo, chords and onsets), renaming and deleting timing tracks, moving rows, tags, sequence faces, song structure, Import Effects, SuperStar import, Import Lyrics, effect symbols and every Media Manager edit can now be undone, each as one step.
+- Song structure boundaries can be dragged in the waveform strip.
+- Shared show folders: changes someone else saves to the layout, controllers or effect presets are merged with yours instead of overwritten. You only choose where you both changed the same thing, and their changes are brought into the open show once playback or a drag ends (can be turned off in Settings).
+- Shared show folders: you are warned before overwriting someone else's saved changes, warned when opening a sequence someone else has open (open anyway or read-only), and the layout editor shows who else is editing.
+- Autosaves in a shared show folder are kept per device, and restoring one no longer discards changes someone else saved since.
+- Opening a sequence saved before models were renamed in the layout renames its rows to match.
+- Conflicted copies left by iCloud, Dropbox and other sync services can be merged back into the layout, controller and preset files.
+- Show files are saved in one step, so a crash or sync never sees a half-written file.
 
 Fixed
-- 3D objects (gridlines, terrain, mesh, image, ruler) stay in the Default preview instead of being lost on reopen.
-- Faces and State effects can switch to Timing Track.
-- The Custom model node list shows the right node and string numbers.
-- Opening a sequence with a large saved render no longer gets the app closed; it loads in the background.
-- Fixed a crash in the media picker with animated thumbnails.
-- Effects: fixes for Guitar, Faces blinks, VU Meter, Bars highlights, Single Strand, Galaxy, Ripple, Snowstorm, Text, Moving Head paths and masked transitions on multi-light nodes.
-- Butterfly, Plasma, rotation and zoom render the same with GPU rendering on and off.
-- Custom and Cube buffer styles, rotated buffers and Rotate 90 Flip transforms keep every light inside the buffer.
-- Value curves: wrapped curves, Sine reverse and lost points are fixed.
-- Duplicating an effect with Override Timing, and linking an effect to a symbol, no longer wipe settings.
-- Timing and audio: lyric and timing import fixes, and better tempo, pitch and key detection.
-- Sparse FSEQ files with more than 255 ranges no longer lose channels.
-- Import: many fixes to SuperStar, Vixen 3, LOR, HLS and Papagayo import.
-- Package import keeps face colours, and embedded media no longer shows duplicate copies.
-- Layout: Poly Line channels and light spacing, single-light arches, model start corners and model groups matching by name prefix are fixed.
-- DMX: moving head preview and channel names, servo offsets shrinking on save, and several DMX model crashes are fixed.
-- Controllers: copying and editing controllers keeps their settings, FPP Connect no longer uses a full CPU core while waiting, and uploads to many controller types no longer crash on unexpected replies.
-- Fixed many crashes, including lyric search, damaged layout and model files, and corrupt .fseq files.
+- Dragging an effect setting slider or typing a value is one undo step.
+- Undo of a large step such as pasting many effects now fully reverts it.
+- Undo and Redo after Promote Node Effects, Convert Data to Effects, Breakdown Phrase and Breakdown Word(s) work correctly.
+- A deleted model no longer comes back after saving the layout.
+- SingleStrand with a 6-colour palette could crash.
+- Layered Arches with an Inside start rendered Strand effects on the wrong nodes.
+- Moving Head Adv: position zones now apply when the effect is on a group.
+- Fixed a crash starting playback and a hang when closing on a busy device.
 
 === Windows Store (limit 1500) ===
-xLights 2026.20 - November 12, 2026
+xLights 2026.21 - November 24, 2026
 
 New
-- Faster rendering of many effects; Spirals is about 2x faster.
-- Spirals: a Reverse 3D option.
-- Import Effects: preview the vendor's model beside yours.
-- Bulk Edit: edit properties of many models at once.
-- Media Manager: Re-embed from Disk.
-- Bulk Controller Upload: Select All, filter and Invert Selection.
+- Much broader Undo: timing tracks, models in the sequence, imports, Shift Effects, effect symbols, tags, song structure and Media Manager edits can be undone in one step.
+- Shared show folders: others' saved layout, controller and preset changes are merged with yours instead of overwritten, with warnings when someone else has a sequence open.
+- Autosaves in shared folders are kept per computer.
+- Sequences follow model renames made in the layout.
+- Sync-service conflicted copies can be merged back in.
+- Lyrics: Generate AI Image for Phrase.
+- Custom Model: middle mouse pans the grid.
 
 Fixed
-- Many effect fixes, including Guitar, VU Meter, Bars, Single Strand, Snowstorm and transitions.
-- Several effects and transitions now render the same as on macOS.
-- Value curve and buffer style fixes.
-- Effect grid selection and timeline tag fixes.
-- Sparse FSEQ files no longer lose channels.
-- Many SuperStar, Vixen, LOR and timing import fixes.
-- DirectX video: small videos and Maintain Aspect Ratio fixed.
-- The window no longer sticks between monitors with different scaling.
-- Many Layout, DMX, FPP Connect and controller upload fixes.
-- Fixed many crashes.
+- Many Undo fixes, including effect settings panel changes and Split Effect.
+- Bulk editing a DMX slider could clear value curves on other channels.
+- SingleStrand, Layered Arches and Moving Head position zone fixes.
+- FPP Connect, Falcon and HinksPix upload fixes.
+- Import Custom Model Overlay, Print Layout and LOR S5/LMS/HLS import fixes.
+- Fixed several crashes.
