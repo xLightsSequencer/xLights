@@ -181,6 +181,83 @@ public:
 // Subclassing wxGrid is the only way to get keyboard copy and paste working without breaking the grid behaviour
 class CopyPasteGrid : public wxGrid
 {
+    bool _panning = false;
+    wxPoint _panPosition;
+    wxPoint _panRemainder;
+
+    void OnPanStart(wxMouseEvent& event)
+    {
+        if (wxWindow::GetCapture()) {
+            event.Skip();
+            return;
+        }
+
+        _panPosition = event.GetPosition();
+        _panRemainder = wxPoint(0, 0);
+        GetGridWindow()->CaptureMouse();
+        _panning = true;
+    }
+
+    void EndPan()
+    {
+        if (_panning) {
+            _panning = false;
+            if (GetGridWindow()->HasCapture()) {
+                GetGridWindow()->ReleaseMouse();
+            }
+        }
+    }
+
+    void OnPanEnd(wxMouseEvent& event)
+    {
+        if (_panning) {
+            EndPan();
+        } else {
+            event.Skip();
+        }
+    }
+
+    void OnPanCaptureLost(wxMouseCaptureLostEvent& event)
+    {
+        if (_panning) {
+            _panning = false;
+        } else {
+            event.Skip();
+        }
+    }
+
+    void OnPanMotion(wxMouseEvent& event)
+    {
+        if (!_panning) {
+            event.Skip();
+            return;
+        }
+        if (!event.MiddleIsDown()) {
+            EndPan();
+            event.Skip();
+            return;
+        }
+
+        const wxPoint position = event.GetPosition();
+        _panRemainder += _panPosition - position;
+        _panPosition = position;
+
+        int xPixels, yPixels;
+        GetScrollPixelsPerUnit(&xPixels, &yPixels);
+        xPixels = std::max(1, xPixels);
+        yPixels = std::max(1, yPixels);
+        const int dx = _panRemainder.x / xPixels;
+        const int dy = _panRemainder.y / yPixels;
+        _panRemainder.x %= xPixels;
+        _panRemainder.y %= yPixels;
+
+        if (dx != 0 || dy != 0) {
+            int x, y;
+            GetViewStart(&x, &y);
+            Scroll(std::max(0, x + dx), std::max(0, y + dy));
+        }
+    }
+
     void HandleOnMouseWheel(wxMouseEvent& event)
     {
         m_wheelRotation += event.GetWheelRotation();
@@ -341,11 +418,17 @@ class CopyPasteGrid : public wxGrid
     {
         Connect(wxEVT_CHAR, (wxObjectEventFunction)&CopyPasteGrid::DoOnChar, 0, this);
         Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&CopyPasteGrid::HandleOnMouseWheel, 0, this);
+
+        auto* cells = GetGridWindow();
+        cells->Bind(wxEVT_MIDDLE_DOWN, &CopyPasteGrid::OnPanStart, this);
+        cells->Bind(wxEVT_MIDDLE_UP, &CopyPasteGrid::OnPanEnd, this);
+        cells->Bind(wxEVT_MOTION, &CopyPasteGrid::OnPanMotion, this);
+        cells->Bind(wxEVT_MOUSE_CAPTURE_LOST, &CopyPasteGrid::OnPanCaptureLost, this);
     }
 
     virtual ~CopyPasteGrid()
     {
-
+        EndPan();
     }
 };
 
