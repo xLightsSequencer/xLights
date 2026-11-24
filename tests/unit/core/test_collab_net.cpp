@@ -204,6 +204,7 @@ TEST_CASE("Collab callback contexts are found by number until removed", "[collab
 #include "test_collab_common.h"
 
 #include "render/SequenceCommands.h"
+#include "utils/ShowFileGuard.h"
 
 #include <algorithm>
 #include <atomic>
@@ -583,15 +584,31 @@ TEST_CASE("Collab LAN blobs share the link without holding up messages", "[colla
     std::string big = RandomBytes(6u << 20, 1);
     std::string small = RandomBytes(1000, 2);
     std::string path = dir.Write("blob.bin", big);
+    // The copy waits until the file has been replaced and removed, so the
+    // transport still has it open meanwhile.
+    std::atomic<bool> replaced{ false };
+    Files::Test::beforeCopy = [&] {
+        for (int i = 0; i < 1000 && !replaced.load(); ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    };
+    struct Unhook {
+        ~Unhook() { Files::Test::beforeCopy = nullptr; }
+    } unhook;
     h.t->SendBlob(p, 11, path);
-    // The transport has its own copy (or the file open): the caller may
-    // replace or remove the file at once.
-    std::string replacement = dir.Write("replacement.bin", "changed");
-    std::filesystem::rename(replacement, path);
-    std::filesystem::remove(path);
     for (int i = 0; i < 50; ++i) {
         h.t->Send(p, Ping(i));
     }
+    // The transport has the file open (or its own copy): the caller may
+    // replace or remove it at once. A save replaces it the way ShowFileGuard
+    // does (a plain rename over a file another handle has open is refused on
+    // Windows; xLights never replaces files that way).
+    bool saved = ShowFileGuard::WriteFileAtomically(path, std::string("changed"));
+    std::error_code removeError;
+    std::filesystem::remove(path, removeError);
+    replaced = true;
+    REQUIRE(saved);
+    REQUIRE_FALSE(removeError);
     std::string emptyPath = dir.Write("empty.bin", "");
     h.t->SendBlob(p, 12, emptyPath);
     h.t->SendBlob(p, 13, dir.Write("small.bin", small));
