@@ -182,6 +182,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  being edited
     -bug (dkulp)                 HinksPix Export could crash on open when a saved playlist listed the same
                                  sequence twice
+    -bug (dkulp)                 Starting playback on Mac/iPad could crash in the audio engine right after
+                                 a sequence's audio was loaded
 
 2026.20  November 12, 2026
 
