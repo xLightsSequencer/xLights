@@ -213,6 +213,11 @@ int ArchesModel::GetStrandLength(int strand) const
     if (GetLayerSizeCount() == 0) {
         return Model::GetStrandLength(strand);
     } else {
+        // Strands are numbered in wiring order (MapToNodeIndex/GetMappedStrand); an inside
+        // start wires layer 0 first, an outside start wires the last layer first.
+        if (!isBotToTop) {
+            return GetLayerSize(GetLayerSizeCount() - 1 - strand);
+        }
         return GetLayerSize(strand);
     }
 }

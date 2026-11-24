@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.21  November ??, 2026
+    -bug (derwin12)              Layered Arches with an Inside starting location rendered Strand effects on
+                                 the wrong nodes when the layers had different sizes
     -bug (derwin12)              FPP Connect no longer adds uploaded .eseq effect files to the selected playlist
                                  as sequence entries (#7411)
     -bug (derwin12)              FPP Connect: an effect sequence with no channels on a controller now reports
