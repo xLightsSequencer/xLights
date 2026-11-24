@@ -57,6 +57,23 @@ BulkEditModelPropertiesDialog::BulkEditModelPropertiesDialog(wxWindow* parent, x
     Layout();
 }
 
+BulkEditModelPropertiesDialog::~BulkEditModelPropertiesDialog()
+{
+    UnbindGrid();
+}
+
+// ~wxPropertyGrid commits any cell still being edited and sends CHANGING /
+// CHANGED for it. That runs from ~wxWindow, after our members are destroyed
+// and, on Cancel, after the caller's DoUndo has freed _primary, so the
+// handlers must be gone before then.
+void BulkEditModelPropertiesDialog::UnbindGrid()
+{
+    if (_grid != nullptr) {
+        _grid->Unbind(wxEVT_PG_CHANGING, &BulkEditModelPropertiesDialog::OnPropertyGridChanging, this);
+        _grid->Unbind(wxEVT_PG_CHANGED, &BulkEditModelPropertiesDialog::OnPropertyGridChanged, this);
+    }
+}
+
 void BulkEditModelPropertiesDialog::OnPropertyGridChanging(wxPropertyGridEvent& event)
 {
     if (_adapter) {
@@ -98,7 +115,13 @@ bool BulkEditModelPropertiesDialog::ShowAndApply()
         return false;
     }
 
-    if (ShowModal() != wxID_OK || _changedProperties.empty()) {
+    const int rc = ShowModal();
+    if (rc == wxID_OK) {
+        // Apply a cell the user typed into but never left, so OK keeps it.
+        _grid->CommitChangesFromEditor();
+    }
+    UnbindGrid();
+    if (rc != wxID_OK || _changedProperties.empty()) {
         return false;
     }
 

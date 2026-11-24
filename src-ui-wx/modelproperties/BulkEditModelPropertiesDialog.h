@@ -36,6 +36,7 @@ public:
     // entries; models[0] is used as the primary (the one the grid actually
     // edits live while the dialog is open).
     BulkEditModelPropertiesDialog(wxWindow* parent, xLightsFrame* xlights, const std::vector<Model*>& models);
+    ~BulkEditModelPropertiesDialog() override;
 
     // Shows the dialog modally. If accepted, replays every property changed
     // while it was open onto every other model in the selection and returns
@@ -45,6 +46,7 @@ public:
 private:
     void OnPropertyGridChanging(wxPropertyGridEvent& event);
     void OnPropertyGridChanged(wxPropertyGridEvent& event);
+    void UnbindGrid();
 
     xLightsFrame* _xlights;
     std::vector<Model*> _models;

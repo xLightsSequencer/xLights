@@ -178,6 +178,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  on 50 ms sequences
     -bug (derwin12)              HinksPix DDP upload sent an absolute DMX start channel; now relative to the
                                  controller start so DMX works when the controller isn't at channel 1 (#7297)
+    -bug (dkulp)                 Bulk Edit Properties could crash when closed while a property was still
+                                 being edited
+    -bug (dkulp)                 HinksPix Export could crash on open when a saved playlist listed the same
+                                 sequence twice
 
 2026.20  November 12, 2026
 

@@ -2219,7 +2219,9 @@ void HinksPixExportDialog::RedrawPlayList(std::string const& new_playlist, bool 
         int index = 0;
         for (auto const& [seq, media,h,au] : nplaylist.Items) {
             int const i = CheckListBox_Sequences->FindItem(0, seq);
-            if (i != -1) {
+            // A playlist that names the same sequence twice finds it again
+            // above index; moving it would push index past the last row.
+            if (i >= index) {
                 CheckListBox_Sequences->CheckItem(i, true);
                 moveSequenceItem(index, i, false);
                 index++;
