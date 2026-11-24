@@ -75,8 +75,8 @@ jobs:
                               --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
           if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed ($LASTEXITCODE)" }
 
-      # Always uploaded with --noCommit, even when auto-commit is on, so the
-      # release notes can be written onto the draft before it is submitted.
+      # Uploaded with --noCommit so the release notes can be written onto the
+      # draft before the commit step below submits it.
       - name: Upload MSIX to Partner Center
         shell: pwsh
         env:
@@ -147,7 +147,6 @@ jobs:
           exit 0
 
       - name: Commit the submission
-        if: vars.MSSTORE_AUTO_COMMIT == 'true'
         shell: pwsh
         env:
           PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}

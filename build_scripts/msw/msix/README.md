@@ -138,7 +138,15 @@ are set:
 |---|---|---|
 | `MSSTORE_PUBLISH_ENABLED` | yes (`true`) | Master switch for the job. |
 | `MSSTORE_PRODUCT_ID` | optional | Defaults to the Store ID `9PGTCKZNKJ2G`, which is the form the API returns for this app (`GET /v1.0/my/applications`), so it normally needs no override. |
-| `MSSTORE_AUTO_COMMIT` | optional | `true` also commits the draft, starting certification. Default (unset) passes `--noCommit`: the package is uploaded and waits for you to review the listing and press Submit in Partner Center. |
+
+The job uploads the package with `--noCommit`, writes the "What's new" text from
+`RELEASE_SUMMARIES.txt` onto the draft, then commits the submission, which starts
+certification. It always commits: Partner Center only ingests an uploaded package
+on commit, so an uncommitted draft still shows the previous release's package, and
+editing it in the Partner Center UI can stop the API-uploaded package from ever
+being processed. To review before it goes live, turn on **Publish this submission
+manually** in the app's Submission options once; later submissions inherit it, and
+the release then waits for you to press Publish after certification.
 
 Repo **secrets** (all four required when enabled):
 `MSSTORE_TENANT_ID`, `MSSTORE_SELLER_ID`, `MSSTORE_CLIENT_ID`,

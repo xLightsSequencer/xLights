@@ -222,11 +222,12 @@ jobs:
   # The draft's "What's new" text comes from the Windows Store section of
   # RELEASE_SUMMARIES.txt, written as part of preparing the release.
   #
-  # By default the draft is left uncommitted, so the package is uploaded and
-  # waits for a human to review the listing and press Submit. Set the
-  # MSSTORE_AUTO_COMMIT variable to true to have CI start certification too -
-  # the package is still uploaded with --noCommit so the release notes land on
-  # the draft first, and the submission is committed as the last step.
+  # The submission is always committed. Partner Center only ingests the
+  # uploaded package when the submission is committed: an uncommitted draft
+  # shows the previous release's package, and pressing Submit on it in the
+  # Partner Center UI after editing it there can leave the API-uploaded package
+  # unprocessed. To keep control of go-live, set "Publish this submission
+  # manually" in the app's Submission options once; new submissions inherit it.
   publish-store:
     needs: build-windows
     if: startsWith(github.ref, 'refs/tags/')
@@ -291,8 +292,8 @@ jobs:
                               --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
           if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed ($LASTEXITCODE)" }
 
-      # Always uploaded with --noCommit, even when auto-commit is on, so the
-      # release notes can be written onto the draft before it is submitted.
+      # Uploaded with --noCommit so the release notes can be written onto the
+      # draft before the commit step below submits it.
       - name: Upload MSIX to Partner Center
         if: env.STORE_PUBLISH == 'true'
         shell: pwsh
@@ -364,7 +365,7 @@ jobs:
           exit 0
 
       - name: Commit the submission
-        if: env.STORE_PUBLISH == 'true' && vars.MSSTORE_AUTO_COMMIT == 'true'
+        if: env.STORE_PUBLISH == 'true'
         shell: pwsh
         env:
           PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID || '9PGTCKZNKJ2G' }}
