@@ -530,6 +530,30 @@ TEST_CASE("Circle with legacy circle sizes lists layers inner first", "[models2]
     CHECK(Cells(m) == std::vector<Pt>{ { 0, 0 }, { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 }, { 0, 1 }, { 2, 1 }, { 4, 1 } });
 }
 
+TEST_CASE("Layered arches strands each cover exactly one layer for either start", "[models2][layouts]") {
+    for (const char* side : { "B", "T" }) {
+        INFO("StartSide " << side);
+        ShowFixture f;
+        Model* m = f.Make("Arches", std::string("NumArches=\"1\" NodesPerArch=\"10\" LayerSizes=\"5,3,2\" StartSide=\"") + side + "\"");
+        REQUIRE(m->GetNumStrands() == 3);
+        std::set<int> rows;
+        int total = 0;
+        for (int s = 0; s < m->GetNumStrands(); ++s) {
+            int len = m->GetStrandLength(s);
+            total += len;
+            int row = m->GetNode(m->MapToNodeIndex(s, 0))->Coords[0].bufY;
+            for (int n = 0; n < len; ++n) {
+                int idx = m->MapToNodeIndex(s, n);
+                REQUIRE(idx < (int)m->GetNodeCount());
+                CHECK(m->GetNode(idx)->Coords[0].bufY == row);
+            }
+            rows.insert(row);
+        }
+        CHECK(rows.size() == 3);
+        CHECK(total == 10);
+    }
+}
+
 TEST_CASE("Spinner arms are columns of nodes", "[models2][layouts]") {
     ShowFixture f;
     Model* m = f.Make("Spinner", "NumStrings=\"1\" NodesPerArm=\"3\" ArmsPerString=\"2\"");
