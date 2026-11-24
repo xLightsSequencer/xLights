@@ -112,6 +112,9 @@ public:
 
     void Discover();
 
+    // When set, only hosts the filter accepts are sent HTTP requests or unicast pings.
+    void SetHostFilter(std::function<bool(const std::string &host)>&& filter) { _hostFilter = std::move(filter); }
+
     DiscoveredData *AddController(ControllerEthernet *c);
 
     std::vector<DiscoveredData*> &GetResults() { return results; }
@@ -158,6 +161,7 @@ private:
     std::list<BonjourData *> bonjours;
     std::vector<DiscoveredData*> results;
     bool finished = false;
+    std::function<bool(const std::string &host)> _hostFilter;
 
     uint64_t discoveryFinishTime;
 };

@@ -327,9 +327,20 @@ final class FPPConnectRunner {
     private(set) var forcedIPs: [String] = []
     private static let forcedIPsKey = "FPPConnectForcedIPs"
 
+    /// Contact only the configured controllers and forced IPs instead of
+    /// searching the network.
+    var onlyListedControllers: Bool {
+        didSet {
+            UserDefaults.standard.set(onlyListedControllers, forKey: Self.onlyListedKey)
+            discover()
+        }
+    }
+    private static let onlyListedKey = "FPPConnectOnlyListedControllers"
+
     init(document: XLSequenceDocument) {
         self.document = document
         self.forcedIPs = UserDefaults.standard.stringArray(forKey: Self.forcedIPsKey) ?? []
+        self.onlyListedControllers = UserDefaults.standard.object(forKey: Self.onlyListedKey) as? Bool ?? true
     }
 
     /// CTL-5 — append a forced IP (deduped), persist, and re-run discovery.
@@ -355,8 +366,8 @@ final class FPPConnectRunner {
             // inside the detached task so we can return them cleanly
             // across the actor boundary (Swift 6 won't allow
             // [AnyHashable: Any] to cross).
-            let parsed: [FPPInstance] = await Task.detached(priority: .userInitiated) { [document, forcedIPs] in
-                let raw = document.discoverFPPInstances(withForcedAddresses: forcedIPs)
+            let parsed: [FPPInstance] = await Task.detached(priority: .userInitiated) { [document, forcedIPs, onlyListedControllers] in
+                let raw = document.discoverFPPInstances(withForcedAddresses: forcedIPs, onlyListed: onlyListedControllers)
                 return raw.compactMap { entry -> FPPInstance? in
                     guard let dict = entry as? [String: Any] else { return nil }
                     return FPPInstance(dict: dict)
@@ -798,6 +809,7 @@ struct FPPConnectSheet: View {
                 } label: {
                     Label("Re-Discover", systemImage: "arrow.clockwise")
                 }
+                Toggle("Only My Controllers", isOn: Bindable(runner).onlyListedControllers)
                 Button {
                     addFPPIPText = ""
                     showingAddFPPByIP = true
