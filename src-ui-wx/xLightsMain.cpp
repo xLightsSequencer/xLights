@@ -9071,6 +9071,15 @@ void xLightsFrame::SetUserEMAIL(const wxString& e)
     spdlog::info("User email changed to {}", _userEmail.ToStdString());
 }
 
+void xLightsFrame::SetLinkedControllerUpload(const wxString& e)
+{
+    _linkedControllerUpload = e;
+    auto* config = GetXLightsConfig();
+    config->Write("xLightsLinkedControllerUpload", _linkedControllerUpload);
+    config->Flush();
+    spdlog::info("Linked controller upload set to {}", _linkedControllerUpload.ToStdString());
+}
+
 void xLightsFrame::SetRenameModelAliasPromptBehavior(const wxString& e)
 {
 
