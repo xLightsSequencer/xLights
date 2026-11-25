@@ -1,0 +1,217 @@
+{
+    "schemaVersion": 1,
+    "description": "Attributes of the <ControllerConnection> child element of a <model> node in xlights_rgbeffects.xml. Present only when the model has a non-zero port (Model::GetConstCtrlConn().GetCtrlPort() != 0, see BaseSerializingVisitor::WriteControllerConnectionElement); a model with no controller/port assignment has no <ControllerConnection> element at all. Source of truth: src-core/models/ControllerConnection.h/.cpp, BaseSerializingVisitor::Visit(const ControllerConnection&) (writer) and XmlDeserializingModelFactory::DeserializeControllerConnection (reader), cross-checked against ModelPropertyAdapter::AddControllerProperties/UpdateControllerProperties (@630/@877) for property-grid ranges and ControllerCaps capsGate names.",
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model",
+        "element": "ControllerConnection"
+    },
+    "properties": [
+        {
+            "xmlAttribute": "Port",
+            "gridKey": "ModelControllerConnectionPort",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 128,
+            "description": "Controller port/output number this model is wired to (1-based; 0 = not connected, in which case the whole <ControllerConnection> element is omitted). Default max shown here (128, MOST_CONTROLLER_PORTS_WE_EXPECT) applies when no controller/protocol is assigned; once assigned, the effective max is protocol-dependent via the controller's ControllerCaps: GetMaxSerialPort() for serial protocols, GetMaxPixelPort() for pixel protocols, GetMaxLEDPanelMatrixPort()/GetMaxVirtualMatrixPort() for matrix protocols, GetMaxPWMPort() for PWM. MULTI-STRING MAPPING: this is only the port for physical string 1. When the model has N physical strings (e.g. a Matrix model's NumStrings), strings 2..N are NOT separately addressable in XML - they automatically occupy the N-1 controller ports immediately following this one, one string per port (ControllerConnection::GetCtrlPort(string) = this Port plus a same-SmartRemote-group offset derived from string index; see ControllerConnection.cpp GetPortSR). A writer cannot place a multi-string model's strings on non-consecutive or arbitrarily-sized ports - each physical string is exactly one whole port. This is precisely the limitation that forces native multi-string models (e.g. Matrix) to be converted to a Custom model (see models/Custom.json) when arbitrary per-port pixel counts are needed."
+        },
+        {
+            "xmlAttribute": "Protocol",
+            "gridKey": "ModelControllerConnectionProtocol",
+            "type": "string",
+            "default": "",
+            "description": "Output protocol identifier for this port (e.g. \"ws2811\", \"E1.31\", \"DMX\", \"LOR\", \"LED Panel Matrix\", \"Virtual Matrix\", \"PWM\", ...). Deliberately modeled as a free-form string rather than a fixed enum: the valid set is the union of Model::GetControllerProtocols() (pixel + serial + matrix + PWM protocol names), which is assembled from the large, actively-maintained tables in src-core/models/Pixels.cpp (GetAllPixelTypes()/GetAllSerialTypes()) plus the literal names \"LED Panel Matrix\", \"Virtual Matrix\", \"PWM\" (see Pixels.cpp IsMatrixProtocol/IsPWMProtocol) - reproducing that list here would drift out of sync with the C++. This value determines which of channel/Speed (serial) vs the pixel-port properties below actually apply; see Model::IsSerialProtocol()/IsPixelProtocol()/IsMatrixProtocol()/IsPWMProtocol() (all also require Port != 0)."
+        },
+        {
+            "xmlAttribute": "channel",
+            "gridKey": "ModelControllerConnectionDMXChannel",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 512,
+            "description": "DMX/serial channel-within-port offset. Only written/relevant when Protocol is a serial protocol (Model::IsSerialProtocol()). Default max (512) applies when no controller assigned; otherwise ControllerCaps::GetMaxSerialPortChannels() governs the effective max."
+        },
+        {
+            "xmlAttribute": "Speed",
+            "gridKey": "ModelControllerConnectionSpeed",
+            "type": "uint",
+            "default": 25000,
+            "description": "Serial protocol link speed/baud (CONTROLLER_CONNECTION_DEFAULTS::DEFAULT_PROTOCOL_SPEED = 25000). Only written/relevant for serial protocols. Modeled as a plain integer rather than an enum because the property grid's valid choice list is protocol-specific (Model::GetSerialProtocolSpeeds(protocol)) and varies per selected Protocol value; 0 is never persisted (ControllerConnection::SetSerialProtocolSpeed ignores an incoming 0 and keeps the previous value)."
+        },
+        {
+            "xmlAttribute": "SmartRemote",
+            "gridKey": "SmartRemote",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "capsGate": "SupportsSmartRemotes",
+            "description": "1-based smart-remote index this port cascades through (0 = smart remote not in use). Displayed in the UI as a letter (A=1, B=2, ...; Model::GetSmartRemoteLetter()). Only written when non-zero AND the USE_SMART_REMOTE toggle is active (ControllerConnection::IsPropertySet(CtrlProps::USE_SMART_REMOTE)); the toggle itself (\"Use Smart Remote\" / gridKey \"UseSmartRemote\") is UI-only - its state is exactly \"is SmartRemote present and non-zero\", there is no separate persisted flag. Upper bound is dynamic: ControllerCaps::GetSmartRemoteCount() for the assigned controller (commonly up to 15)."
+        },
+        {
+            "xmlAttribute": "SmartRemoteType",
+            "gridKey": "SmartRemoteType",
+            "type": "string",
+            "default": "",
+            "capsGate": "SupportsSmartRemotes",
+            "description": "Smart-remote hardware sub-type name for this port, chosen from the assigned controller's ControllerCaps::GetSmartRemoteTypes() (a data-driven, controller-model-specific list - not a fixed enum). Only present inside the same SmartRemote-active block described above."
+        },
+        {
+            "xmlAttribute": "SRMaxCascade",
+            "gridKey": "MaxCascadeRemotes",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "capsGate": "SupportsSmartRemotes",
+            "relatedTo": [
+                "SmartRemote",
+                "SRCascadeOnPort"
+            ],
+            "description": "Number of consecutive smart remotes to cascade across for this model's strings (e.g. 2 = use remotes B and C starting from SmartRemote). Upper bound is ControllerCaps::GetSmartRemoteCount() for the assigned controller. Only present/relevant when the model has more than one physical string and smart remote is active."
+        },
+        {
+            "xmlAttribute": "SRCascadeOnPort",
+            "gridKey": "CascadeOnPort",
+            "type": "bool",
+            "boolFormat": "TRUEFALSE",
+            "default": "FALSE",
+            "capsGate": "SupportsSmartRemotes",
+            "relatedTo": [
+                "SmartRemote",
+                "SRMaxCascade"
+            ],
+            "description": "When TRUE, string order is 1A,1B,1C,... (cascade within a port before advancing port); when FALSE (default), order is 1A,2A,3A,4A,1B,... (cascade across ports at the same remote letter first). Only present inside the smart-remote-active block."
+        },
+        {
+            "xmlAttribute": "ts",
+            "gridKey": "ModelControllerConnectionPixelTs",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 20,
+            "capsGate": "SupportsTs",
+            "description": "Smart-remote \"Ts\" timing parameter. Only written when BOTH Smart Remote is active (SmartRemote != 0 and USE_SMART_REMOTE is set) AND the TS_ACTIVE toggle (\"Set Smart Ts\" / gridKey \"ModelControllerConnectionPixelSetTs\") is enabled; that toggle is UI-only (its state is exactly \"is ts present\"). Absent means the controller/port default applies. Nested inside the SmartRemote-active block, so persists only under the dual preconditions."
+        },
+        {
+            "xmlAttribute": "nullNodes",
+            "gridKey": "ModelControllerConnectionPixelNullNodes",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "capsGate": "SupportsPixelPortNullPixels",
+            "description": "Number of extra \"null\" (unlit/dummy) pixels sent before the model's real pixel data on this port. Only written when the START_NULLS_ACTIVE toggle (\"Set Start Null Pixels\" / gridKey \"ModelControllerConnectionPixelSetNullNodes\") is enabled; that toggle is UI-only - presence of this attribute IS the toggle. capsGate name corrects the brief's survey guess of \"SupportsPixelNullPixels\" to the actual ControllerCaps method \"SupportsPixelPortNullPixels\"."
+        },
+        {
+            "xmlAttribute": "endNullNodes",
+            "gridKey": "ModelControllerConnectionPixelEndNullNodes",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "capsGate": "SupportsPixelPortEndNullPixels",
+            "description": "Number of extra null pixels sent after the model's real pixel data on this port. Only written when END_NULLS_ACTIVE (\"Set End Null Pixels\") is enabled; UI-only toggle, same pattern as nullNodes. capsGate name corrects the brief's survey guess of \"SupportsPixelEndNullPixels\" to the actual ControllerCaps method \"SupportsPixelPortEndNullPixels\"."
+        },
+        {
+            "xmlAttribute": "Brightness",
+            "gridKey": "ModelControllerConnectionPixelBrightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 100,
+            "capsGate": "SupportsPixelPortBrightness",
+            "legacyAttributes": [
+                "brightness"
+            ],
+            "description": "Per-port pixel brightness percentage override. Only written when BRIGHTNESS_ACTIVE (\"Set Brightness\") is enabled; UI-only toggle, presence of this attribute IS the toggle (ControllerConnection::_brightnessIsSet mirrors this). Also read for PWM protocol ports unconditionally under the same gridKey (no separate toggle in that branch of ModelPropertyAdapter::AddControllerProperties). Legacy files may instead use the lowercase attribute \"brightness\" (XmlNodeKeys::DCBrightnessAttribute); the reader falls back to it via ReadIntAttrWithLegacyFallback when \"Brightness\" is absent."
+        },
+        {
+            "xmlAttribute": "gamma",
+            "gridKey": "ModelControllerConnectionPixelGamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "step": 0.1,
+            "precision": 1,
+            "capsGate": "SupportsPixelPortGamma",
+            "description": "Per-port gamma correction factor. Only written when GAMMA_ACTIVE (\"Set Gamma\") is enabled for pixel protocols; UI-only toggle. Also read for PWM protocol ports unconditionally under the same gridKey/xmlAttribute (no separate toggle in that branch)."
+        },
+        {
+            "xmlAttribute": "colorOrder",
+            "gridKey": "ModelControllerConnectionPixelColorOrder",
+            "type": "enum",
+            "default": "RGB",
+            "enum": [
+                "RGB",
+                "RBG",
+                "GBR",
+                "GRB",
+                "BRG",
+                "BGR",
+                "RGBW",
+                "RBGW",
+                "GBRW",
+                "GRBW",
+                "BRGW",
+                "BGRW",
+                "WRGB",
+                "WRBG",
+                "WGBR",
+                "WGRB",
+                "WBRG",
+                "WBGR"
+            ],
+            "capsGate": "SupportsPixelPortColourOrder",
+            "description": "Per-port pixel color channel order override, from the fixed 18-value list Model::CONTROLLER_COLORORDER (src-core/models/Model.cpp). Only written when COLOR_ORDER_ACTIVE (\"Set Color Order\") is enabled; UI-only toggle."
+        },
+        {
+            "xmlAttribute": "Reverse",
+            "gridKey": "ModelControllerConnectionPixelDirection",
+            "type": "enum",
+            "default": "0",
+            "enum": [
+                "0",
+                "1"
+            ],
+            "labels": {
+                "0": "Forward",
+                "1": "Reverse"
+            },
+            "legacyAttributes": [
+                "reverse"
+            ],
+            "capsGate": "SupportsPixelPortDirection",
+            "description": "Per-port pixel direction override, from CONTROLLER_DIRECTION (src-ui-wx/modelproperties/PropertyGridHelpers.cpp: \"Forward\"=0, \"Reverse\"=1). Only written when REVERSE_ACTIVE (\"Set Pixel Direction\") is enabled; UI-only toggle. CORRECTION vs the brief's survey question: the canonical xmlAttribute is \"Reverse\" (capital R, XmlNodeKeys::ReverseAttribute), verified in both BaseSerializingVisitor::Visit(const ControllerConnection&) and XmlDeserializingModelFactory::DeserializeControllerConnection; lowercase \"reverse\" (XmlNodeKeys::CReverseAttribute) is a read-only legacy fallback name for older files, never written by the current serializer."
+        },
+        {
+            "xmlAttribute": "groupCount",
+            "gridKey": "ModelControllerConnectionPixelGroupCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 500,
+            "capsGate": "SupportsPixelPortGrouping",
+            "description": "Number of physical pixels grouped together as one logical/effect pixel on this port. Only written when GROUP_COUNT_ACTIVE (\"Set Group Count\") is enabled; UI-only toggle. Note: the underlying C++ default constant (CONTROLLER_CONNECTION_DEFAULTS::DEFAULT_GROUP_COUNT) is 0, but 0 is never exposed/written in practice - the property is only ever serialized while its toggle is active, and the property grid enforces Min=1 whenever it is shown; \"default\": 1 here documents that active/visible semantic (grouping of 1 = no grouping) rather than the internal not-yet-activated sentinel of 0."
+        },
+        {
+            "xmlAttribute": "ZigZag",
+            "gridKey": "ModelControllerConnectionPixelZigZag",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 1000,
+            "capsGate": "SupportsPixelZigZag",
+            "legacyAttributes": [
+                "zigZag"
+            ],
+            "description": "Per-port zig-zag pixel count (re-routes every N pixels back-and-forth across sub-strands on this port). Only written when ZIG_ZAG_ACTIVE (\"Set Zig Zag\") is enabled; UI-only toggle. Legacy files may instead use \"zigZag\" (XmlNodeKeys::CZigZagAttribute); the reader falls back to it via ReadIntAttrWithLegacyFallback. Distinct from the per-model boolean \"ZigZag\" attribute some model types (e.g. Arches, Spinner) write directly on the <model> element itself (\"true\"/\"false\") for a different, model-specific zig-zag-layers concept - no collision since they live on different XML elements (<model> vs <model><ControllerConnection>)."
+        }
+    ],
+    "notes": [
+        "The whole <ControllerConnection> element is written only when GetCtrlPort() != 0 (BaseSerializingVisitor::WriteControllerConnectionElement); a model using plain StartChannel with no controller assignment has no such element at all.",
+        "Every property gated by an 'ACTIVE' flag above (nullNodes, endNullNodes, Brightness, gamma, colorOrder, Reverse, groupCount, ZigZag, ts) follows the same pattern per the brief's instruction: the 'Set X' checkbox seen in the property grid is UI-only bookkeeping (ControllerConnection::CTRL_PROPS / active_props map) with no attribute of its own - the presence of the value attribute in the XML IS the toggle. They are modeled here as ordinary optional properties, not as separate boolean properties.",
+        "SmartRemote/SmartRemoteType/SRMaxCascade/SRCascadeOnPort/ts are additionally gated as a group by GetSmartRemote() != 0 AND CtrlProps::USE_SMART_REMOTE being set (ControllerConnection::LoadSmartRemote/UpdateProperty(USE_SMART_REMOTE, ...)); there is no separate persisted 'UseSmartRemote' attribute either - it mirrors GetSmartRemote() != 0 on load. For ts specifically, the TS_ACTIVE toggle adds a second layer of gating: ts persists only when SmartRemote is active AND TS_ACTIVE is set.",
+        "capsGate names were verified directly against src-core/controllers/ControllerCaps.h method signatures, not just the brief's survey guesses; two were corrected (SupportsPixelNullPixels -> SupportsPixelPortNullPixels, SupportsPixelEndNullPixels -> SupportsPixelPortEndNullPixels)."
+    ]
+}

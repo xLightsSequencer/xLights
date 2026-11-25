@@ -1,0 +1,69 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Channel Block",
+    "description": "A row of independently-coloured single-channel blocks (e.g. a bank of floods or a DMX dimmer bank), each rendered as one solid colour swatch rather than an RGB pixel. Not exportable as Custom and has no wiring-view support (ChannelBlockModel::SupportsExportAsCustom()/SupportsWiringView() both false).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumChannels",
+            "label": "# Channels",
+            "gridKey": "ChannelBlockCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 128,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of channel blocks in the model (ChannelBlockModel::_numChannels; MAX_CB_CHANNELS = 128). Always forced to StringType \"Single Color Custom\" and SingleNode = true internally (ChannelBlockModel::InitModel), regardless of the model's own StringType/CustomColor attributes (shared/Common.json) - the property grid disables ModelStringType/ModelStringColor for this model type (ChannelBlockPropertyAdapter::DisableUnusedProperties)."
+        },
+        {
+            "xmlAttribute": "ChannelProperties.ChannelColor{n}",
+            "label": "Colour {n}",
+            "gridKey": "ChannelColor{n}",
+            "type": "color",
+            "default": "white",
+            "encoding": "Family of independently-named attributes ChannelProperties.ChannelColor1 .. ChannelProperties.ChannelColor{NumChannels} (1-based index n; XmlNodeKeys::ChannelColorAttribute = \"ChannelProperties.ChannelColor\" concatenated with the index, verified in both BaseSerializingVisitor::Visit(const ChannelBlockModel&) and XmlDeserializingModelFactory::DeserializeChannelBlock). CORRECTION vs the brief's survey guess of a bare \"ChannelColor{n}\" xmlAttribute: the persisted attribute carries the literal \"ChannelProperties.\" prefix; only the wxPropertyGrid child-property name (nested under the disabled placeholder property \"Indiv Colors\"/gridKey \"ChannelProperties\") is the shorter \"ChannelColor{n}\" form.",
+            "description": "Per-channel display colour for channel n (1-based), one attribute per configured channel (count = NumChannels). Value is either a CSS-style colour name (default \"white\" - ChannelBlockModel::InitChannelBlock seeds any missing/empty slot to the literal string \"white\") or a #RRGGBB hex string once picked via the colour-swatch editor (xlColor::operator std::string()); not restricted to hex-only."
+        }
+    ],
+    "notes": [
+        "ChannelBlock has no Starting Location / Dir / StartSide UI at all - its property grid only exposes # Channels and the per-channel colour swatches (ChannelBlockPropertyAdapter::AddTypeProperties); the shared Dir/StartSide attributes (shared/Common.json) are still written/read like every model but have no visible effect on this model's single-row TwoPoint layout.",
+        "TwoPoint screen-location style (shared/ScreenLocation.json): ChannelBlock is one of the two model types using TwoPoint (X2/Y2/Z2, no ScaleX/Y/Z, no Angle/Shear/Height) rather than Boxed or ThreePoint."
+    ]
+}

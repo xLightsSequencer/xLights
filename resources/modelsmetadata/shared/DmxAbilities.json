@@ -1,0 +1,382 @@
+{
+    "schemaVersion": 1,
+    "description": "Ability/component attributes shared by 2+ of the eight DMX model documents (DmxGeneral, DmxFloodlight, DmxFloodArea, DmxMovingHead, DmxMovingHeadAdv, DmxServo, DmxServo3d, DmxSkull). Each DMX document lists this fragment in its own `extends` alongside shared/Common.json, shared/ScreenLocation.json and shared/ControllerConnection.json. Source of truth: src-core/models/DMX/DmxModel.{h,cpp} (DmxChannelCount + preset ability, unconditionally present on every DmxModel subclass), DmxColorAbility*.{h,cpp}, DmxShutterAbility.h, DmxDimmerAbility.h, DmxBeamAbility.h, DmxMovingHeadComm.h (fixture), plus BaseSerializingVisitor.cpp's AddDmxModelAttributes/AddColorAbility*Attributes/AddShutterAbilityAttributes/AddDimmerAbilityAttributes/AddBeamAbilityAttributes/AddPresetAbilityAttributes and XmlDeserializingModelFactory.cpp's matching Deserialize* functions. Type-specific attributes that belong to only one DMX document (DmxStyle/HideBody on DmxMovingHead; NumServos/Bits16/Brightness/Transparency on DmxServo; PivotAxes-is-NOT-persisted/motion-link attributes on DmxServo3d; per-axis Has*/orient ints on DmxSkull; etc.) are documented in that document instead, never here.",
+    "storage": { "file": "xlights_rgbeffects.xml", "node": "models/model" },
+    "properties": [
+        {
+            "xmlAttribute": "DmxChannelCount",
+            "label": "# Channels",
+            "gridKey": "DmxChannelCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 512,
+            "description": "Total DMX channel count for this fixture (DmxModel::_dmxChannelCount, GetDmxChannelCount()/SetDmxChannelCount()); also drives Model::GetNumStrings() for a DMX model. Always written by every one of the eight DMX documents (BaseSerializingVisitor::AddDmxModelAttributes, called from every Dmx*::Visit()). legacyAttributes note: read via ReadAttrWithParmFallback(node, DmxChannelCountAttribute, Parm1Attribute, \"1\") - falls back to legacy parm1 only when DmxChannelCount itself is absent.",
+            "legacyAttributes": ["parm1"]
+        },
+        {
+            "xmlAttribute": "DmxColorType",
+            "label": "Color Type",
+            "gridKey": "DmxColorType",
+            "type": "enum",
+            "enum": ["0", "1", "2", "3"],
+            "labels": { "0": "RGBW", "1": "ColorWheel", "2": "CMYW", "3": "Unused" },
+            "default": "0",
+            "description": "Discriminator for which DmxColorAbility subclass this model's color_ability is (DmxColorAbility::DMX_COLOR_TYPE, stored as the underlying int; DMX_COLOR_TYPES_VALUES label order RGBW/ColorWheel/CMYW/Unused matches the enum's int order 0-3). Written whenever HasColorAbility() (BaseSerializingVisitor::AddColorAbilityAttributes) - true for DmxFloodArea, DmxFloodlight, DmxGeneral, DmxMovingHead, DmxMovingHeadAdv and DmxSkull (6 of 8; DmxServo/DmxServo3d have no color ability at all). CORRECTION vs a per-document read: only DmxMovingHead and DmxMovingHeadAdv actually read this attribute back into a live color-type switch on load (XmlDeserializingModelFactory::DeserializeDynamicColorAbility -> Model::InitColorAbility(color_type), called only from DeserializeDmxMovingHead/DeserializeDmxMovingHeadAdv). For FloodArea/Floodlight/General/Skull the color ability's concrete subclass is fixed at construction time to DmxColorAbilityRGB (their constructors call `color_ability = std::make_unique<DmxColorAbilityRGB>()` directly) and DeserializeDmxModel -> DeserializeColorAbility never consults this attribute - so for those four documents DmxColorType is always written as \"0\" and is inert on read."
+        },
+        {
+            "xmlAttribute": "DmxRedChannel",
+            "label": "Red Channel",
+            "gridKey": "DmxRedChannel",
+            "type": "uint",
+            "default": 1,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "Red channel offset for an RGBW color ability (DmxColorAbilityRGB::red_channel, GetRedChannel()/SetRedChannel()). Default shown is the deserializer's read-fallback (XmlDeserializingModelFactory::DeserializeColorAbilityRGBAttributes: `.as_int(1)`); brand-new in-memory models seed different starting values per document (e.g. DmxMovingHead ctor sets 1, DmxMovingHeadAdv ctor sets 5) but those are just first-save starting points, not read-time defaults."
+        },
+        {
+            "xmlAttribute": "DmxGreenChannel",
+            "label": "Green Channel",
+            "gridKey": "DmxGreenChannel",
+            "type": "uint",
+            "default": 2,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "Green channel offset for an RGBW color ability (DmxColorAbilityRGB::green_channel). Default is the deserializer read-fallback (`.as_int(2)`)."
+        },
+        {
+            "xmlAttribute": "DmxBlueChannel",
+            "label": "Blue Channel",
+            "gridKey": "DmxBlueChannel",
+            "type": "uint",
+            "default": 3,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "Blue channel offset for an RGBW color ability (DmxColorAbilityRGB::blue_channel). Default is the deserializer read-fallback (`.as_int(3)`)."
+        },
+        {
+            "xmlAttribute": "DmxWhiteChannel",
+            "label": "White Channel",
+            "gridKey": "DmxWhiteChannel",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "oneOf": ["0", "2"] },
+            "description": "White channel offset, shared by both the RGBW ability (DmxColorAbilityRGB::white_channel) and the CMYW ability (DmxColorAbilityCMY::white_channel) - same literal xmlAttribute name in both, only one of which is ever active per model (mutually exclusive on DmxColorType), so it is modeled once here rather than as two properties. Default 0 (unused) is the deserializer read-fallback for both abilities."
+        },
+        {
+            "xmlAttribute": "DmxRedBrightness",
+            "label": "PWM Red Brightness",
+            "gridKey": "DmxRedBrightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 200,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM brightness percentage for the red channel (DmxColorAbilityRGB::red_brightness). Only written when non-default (BaseSerializingVisitor::AddColorAbilityRGBAttributes: `if (colors->GetRedBrightness() != 100) attrs.Add(...)`); only shown in the property grid when the model's assigned controller reports PWM support (`pwm` flag), but the attribute itself has no such gate on read."
+        },
+        {
+            "xmlAttribute": "DmxGreenBrightness",
+            "label": "PWM Green Brightness",
+            "gridKey": "DmxGreenBrightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 200,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM brightness percentage for the green channel (DmxColorAbilityRGB::green_brightness). Only written when non-default (100)."
+        },
+        {
+            "xmlAttribute": "DmxBlueBrightness",
+            "label": "PWM Blue Brightness",
+            "gridKey": "DmxBlueBrightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 200,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM brightness percentage for the blue channel (DmxColorAbilityRGB::blue_brightness). Only written when non-default (100)."
+        },
+        {
+            "xmlAttribute": "DmxWhiteBrightness",
+            "label": "PWM White Brightness",
+            "gridKey": "DmxWhiteBrightness",
+            "type": "uint",
+            "default": 100,
+            "min": 0,
+            "max": 200,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM brightness percentage for the white channel (DmxColorAbilityRGB::white_brightness). Only written when non-default (100). CMYW has no per-channel brightness/gamma attributes (DmxColorAbilityCMY has no such members)."
+        },
+        {
+            "xmlAttribute": "DmxRedGamma",
+            "label": "PWM Red Gamma",
+            "gridKey": "DmxRedGamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "precision": 2,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM gamma correction for the red channel (DmxColorAbilityRGB::red_gamma). Only written when non-default (BaseSerializingVisitor: `if (colors->GetRedGamma() != 1.0f) ...`, serialized via FloatToString)."
+        },
+        {
+            "xmlAttribute": "DmxGreenGamma",
+            "label": "PWM Green Gamma",
+            "gridKey": "DmxGreenGamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "precision": 2,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM gamma correction for the green channel (DmxColorAbilityRGB::green_gamma). Only written when non-default (1.0)."
+        },
+        {
+            "xmlAttribute": "DmxBlueGamma",
+            "label": "PWM Blue Gamma",
+            "gridKey": "DmxBlueGamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "precision": 2,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM gamma correction for the blue channel (DmxColorAbilityRGB::blue_gamma). Only written when non-default (1.0)."
+        },
+        {
+            "xmlAttribute": "DmxWhiteGamma",
+            "label": "PWM White Gamma",
+            "gridKey": "DmxWhiteGamma",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.1,
+            "max": 5.0,
+            "precision": 2,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "0" },
+            "description": "PWM gamma correction for the white channel (DmxColorAbilityRGB::white_gamma). Only written when non-default (1.0)."
+        },
+        {
+            "xmlAttribute": "DmxCyanChannel",
+            "label": "Cyan Channel",
+            "gridKey": "DmxCyanChannel",
+            "type": "uint",
+            "default": 1,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "2" },
+            "description": "Cyan channel offset for a CMYW color ability (DmxColorAbilityCMY::cyan_channel). Default is the deserializer read-fallback (`.as_int(1)`)."
+        },
+        {
+            "xmlAttribute": "DmxMagentaChannel",
+            "label": "Magenta Channel",
+            "gridKey": "DmxMagentaChannel",
+            "type": "uint",
+            "default": 2,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "2" },
+            "description": "Magenta channel offset for a CMYW color ability (DmxColorAbilityCMY::magenta_channel). Default is the deserializer read-fallback (`.as_int(2)`)."
+        },
+        {
+            "xmlAttribute": "DmxYellowChannel",
+            "label": "Yellow Channel",
+            "gridKey": "DmxYellowChannel",
+            "type": "uint",
+            "default": 3,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "2" },
+            "description": "Yellow channel offset for a CMYW color ability (DmxColorAbilityCMY::yellow_channel). Default is the deserializer read-fallback (`.as_int(3)`)."
+        },
+        {
+            "xmlAttribute": "DmxColorWheelChannel",
+            "label": "Color Wheel Channel",
+            "gridKey": "DmxColorWheelChannel",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "1" },
+            "description": "Color-wheel position channel for a ColorWheel color ability (DmxColorAbilityWheel::wheel_channel)."
+        },
+        {
+            "xmlAttribute": "DmxDimmerChannel",
+            "label": "Dimmer Channel",
+            "gridKey": "DmxDimmerChannel",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 512,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "1" },
+            "description": "Dimmer channel belonging to the ColorWheel color ability itself (DmxColorAbilityWheel::dimmer_channel) - distinct from the separate MhDimmerChannel dimmer ability documented below, which some of the same models also carry independently of their color type."
+        },
+        {
+            "xmlAttribute": "DmxColorWheelDelay",
+            "label": "Color Wheel Delay(ms)",
+            "gridKey": "DmxColorWheelDelay",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 10000,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "1" },
+            "description": "Milliseconds the wheel takes to physically rotate to a new color (DmxColorAbilityWheel::wheel_delay); used to delay-render the beam color after a wheel change."
+        },
+        {
+            "xmlAttribute": "DmxColorWheelColor{n}",
+            "label": "Color {n+1}",
+            "gridKey": "DmxColorWheelColor{n}",
+            "type": "color",
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "1" },
+            "encoding": "Family of independently-named attributes DmxColorWheelColor0, DmxColorWheelColor1, ... one per configured wheel-color slot (0-based index n, up to DmxColorAbilityWheel::MAX_COLORS = 25). Paired index-for-index with DmxColorWheelDMX{n}. Only as many slots are written as the ability currently holds (GetWheelColorSettings()); reading stops at the first missing pair (XmlDeserializingModelFactory::DeserializeColorWheelAttributes breaks when either half of a pair is absent). Freshly-constructed wheel abilities seed 4 built-in entries (white/red/green/blue at DMX 10/30/50/70, DmxColorAbilityWheel::InitColor()) which only get persisted once the model's color type is actually switched to ColorWheel and saved.",
+            "description": "#RRGGBB color swatch for one color-wheel position (WheelColor::color)."
+        },
+        {
+            "xmlAttribute": "DmxColorWheelDMX{n}",
+            "label": "Color {n+1} DMX",
+            "gridKey": "DmxColorWheelDMX{n}",
+            "type": "uint",
+            "min": 0,
+            "max": 255,
+            "appliesWhen": { "attribute": "DmxColorType", "equals": "1" },
+            "encoding": "Same family/index convention as DmxColorWheelColor{n} above.",
+            "description": "DMX value (0-255) that selects this color-wheel position (WheelColor::dmxValue)."
+        },
+        {
+            "xmlAttribute": "DmxShutterChannel",
+            "label": "Shutter Channel",
+            "gridKey": "DmxShutterChannel",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 512,
+            "description": "Shutter/strobe channel (DmxShutterAbility::shutter_channel). Present on DmxFloodArea, DmxFloodlight, DmxMovingHead and DmxMovingHeadAdv (DmxModel::HasShutterAbility(); absent on DmxGeneral/DmxServo/DmxServo3d/DmxSkull, none of which construct a shutter_ability)."
+        },
+        {
+            "xmlAttribute": "DmxShutterOpen",
+            "label": "Shutter Open Threshold",
+            "gridKey": "DmxShutterOpen",
+            "type": "int",
+            "default": 1,
+            "min": -255,
+            "max": 255,
+            "description": "Threshold the shutter channel's value is compared against to decide open/closed (DmxShutterAbility::shutter_threshold). Sign convention: a positive threshold means \"value >= threshold is open\"; a negative threshold means \"abs(value) <= |threshold| is open\" (see IsShutterOpen())."
+        },
+        {
+            "xmlAttribute": "DmxShutterOnValue",
+            "label": "Shutter On Value",
+            "gridKey": "DmxShutterOnValue",
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "max": 255,
+            "description": "Fixed DMX value written to the shutter channel while shutter is enabled/on (DmxShutterAbility::shutter_on_value); only applied by EnableFixedChannels when non-zero."
+        },
+        {
+            "xmlAttribute": "MhDimmerChannel",
+            "label": "Dimmer Channel",
+            "gridKey": "MhDimmerChannel",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 512,
+            "description": "Overall fixture dimmer channel (DmxDimmerAbility::dimmer_channel). Present only on DmxMovingHead and DmxMovingHeadAdv (DmxModel::HasDimmerAbility()); distinct from the color-wheel-scoped DmxDimmerChannel attribute above."
+        },
+        {
+            "xmlAttribute": "DmxBeamLength",
+            "label": "Beam Display Length",
+            "gridKey": "DmxBeamLength",
+            "type": "float",
+            "default": 1.0,
+            "min": 0,
+            "max": 100,
+            "precision": 2,
+            "step": 0.1,
+            "description": "Visual beam-cone length in the layout preview (DmxBeamAbility::beam_length; preview-only, no channel-data effect). Present on DmxFloodArea, DmxFloodlight, DmxMovingHead and DmxMovingHeadAdv. Default shown (1.0) is the DmxBeamAbility base-class default used by FloodArea/Floodlight; DmxMovingHead and DmxMovingHeadAdv both override their in-memory default to 4.0 in their constructors (SetDefaultBeamLength(4.0)), which becomes the effective read-fallback for those two documents specifically."
+        },
+        {
+            "xmlAttribute": "DmxBeamWidth",
+            "label": "Beam Display Width",
+            "gridKey": "DmxBeamWidth",
+            "type": "float",
+            "default": 1.0,
+            "min": 0.01,
+            "max": 150,
+            "precision": 2,
+            "step": 0.1,
+            "description": "Visual beam-cone width in the layout preview (DmxBeamAbility::beam_width; preview-only). Default shown (1.0) is the base-class default (FloodArea/Floodlight); DmxMovingHead overrides its default to 30.0 and DmxMovingHeadAdv overrides its default to 4.0 (both via SetDefaultBeamWidth in their constructors)."
+        },
+        {
+            "xmlAttribute": "DmxBeamOrient",
+            "label": "Beam Orientation",
+            "gridKey": "DmxBeamOrient",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 360,
+            "description": "Fixed rotational offset added to the rendered beam (DmxBeamAbility::beam_orient). Only ever written when the ability's SupportsOrient() flag is true (BaseSerializingVisitor::AddBeamAbilityAttributes), which only DmxMovingHeadAdv's constructor enables (SetSupportsOrient(true)) - so in practice this attribute is FloodArea/Floodlight/MovingHead-absent, MovingHeadAdv-only. SupportsOrient itself is a runtime capability flag, not a persisted attribute, so this cannot be expressed as an appliesWhen condition here."
+        },
+        {
+            "xmlAttribute": "DmxBeamYOffset",
+            "label": "Beam Y Offset",
+            "gridKey": "DmxBeamYOffset",
+            "type": "float",
+            "default": 0,
+            "min": 0,
+            "max": 500,
+            "precision": 1,
+            "step": 1,
+            "description": "Vertical offset applied to the rendered beam's origin (DmxBeamAbility::beam_y_offset). Only written when SupportsYOffset() is true - again only DmxMovingHeadAdv enables this (SetSupportsYOffset(true), SetDefaultBeamYOffset(17.0)); absent for FloodArea/Floodlight/MovingHead."
+        },
+        {
+            "xmlAttribute": "DmxPresetChannel{n}",
+            "label": "Fixed Channel {n+1} DMX Channel",
+            "gridKey": "DmxPresetChannel{n}",
+            "type": "uint",
+            "min": 0,
+            "max": 255,
+            "encoding": "Family of independently-named attributes DmxPresetChannel0, DmxPresetChannel1, ... (0-based index n, up to DmxPresetAbility::MAX_PRESETS = 25). Paired index-for-index with DmxPresetValue{n} and DmxPresetDesc{n}. Present on ALL eight DMX documents - DmxModel's constructor unconditionally creates a preset_ability (DmxModel::DmxModel(): `preset_ability = std::make_unique<DmxPresetAbility>();`). The property grid's \"DmxPresetSize\" spinner (DmxAbilityPropertyHelpers::AddPresetProperties) controls how many indexed slots exist but is itself derived from GetPresetsCount(), not a persisted attribute. Reading stops at the first index missing either DmxPresetChannel{n} or DmxPresetValue{n} (XmlDeserializingModelFactory::DeserializePresetAbility).",
+            "description": "DMX channel number for one \"fixed/preset\" channel-value override (PresetSetting::DMXChannel, stored as uint8_t - values above 255 are not representable even though a model may have up to 512 DMX channels)."
+        },
+        {
+            "xmlAttribute": "DmxPresetValue{n}",
+            "label": "Fixed Channel {n+1} DMX Value",
+            "gridKey": "DmxPresetValue{n}",
+            "type": "uint",
+            "min": 0,
+            "max": 255,
+            "encoding": "Same family/index convention as DmxPresetChannel{n} above.",
+            "description": "Fixed DMX value (0-255) always written to the paired preset channel (PresetSetting::DMXValue)."
+        },
+        {
+            "xmlAttribute": "DmxPresetDesc{n}",
+            "label": "Fixed Channel {n+1} Description",
+            "gridKey": "DmxPresetDesc{n}",
+            "type": "string",
+            "default": "",
+            "encoding": "Same family/index convention as DmxPresetChannel{n} above.",
+            "description": "Free-text label for this preset channel override (PresetSetting::Description)."
+        },
+        {
+            "xmlAttribute": "DmxFixture",
+            "label": "Fixture",
+            "gridKey": "DmxFixture",
+            "type": "enum",
+            "enum": ["MH1", "MH2", "MH3", "MH4", "MH5", "MH6", "MH7", "MH8"],
+            "default": "MH1",
+            "description": "Logical fixture-instance slot (1-8) this moving-head model occupies, used by MhFeature-based effects to target a specific physical head when several are chained (DmxMovingHeadComm::dmx_fixture / GetFixture() / FixtureIDtoString() - stored form is the literal \"MH1\"..\"MH8\" string, not the 0-based fixture_val int). Present on DmxMovingHead and DmxMovingHeadAdv only (both derive from DmxMovingHeadComm, whose AddDmxMovingHeadCommAttributes always writes it)."
+        }
+    ],
+    "notes": [
+        "Motor child elements (pattern {base}Motor, e.g. PanMotor/TiltMotor): written as a CHILD ELEMENT of the model node (BaseSerializingVisitor::WriteDmxMotorElement: `WriteOpenTag(motor->GetName(), attrs, true)`), NOT as flat {base}-prefixed attributes on the model itself - this corrects the task brief's survey guess of flat `{base}ChannelCoarse` etc. Each {base}Motor element carries these literal attributes (DmxMotor getters in parentheses): ChannelCoarse (uint 0-512, GetChannelCoarse), ChannelFine (uint 0-512, GetChannelFine), MinLimit (int, default -180, GetMinLimit), MaxLimit (int, default 180, GetMaxLimit), RangeOfMotion (float 0-65535, default 180.0, GetRangeOfMotion), OrientZero (int 0-360, default 0, GetOrientZero), OrientHome (int 0-360, default 0, GetOrientHome; grid label is \"Orient Forward (deg)\" for PanMotor, \"Orient Up (deg)\" for TiltMotor - same attribute either way), SlewLimit (float 0-500, default 0.0, GetSlewLimit), Reverse (bool \"0\"/\"1\", GetReverse), UpsideDown (bool \"0\"/\"1\", GetUpsideDown). Concrete base names instantiated: DmxMovingHead and DmxMovingHeadAdv both use PanMotor + TiltMotor (see DmxMovingHeadComm::GetPanMotor/GetTiltMotor). DmxSkull uses Servo elements instead of Motor elements for its equivalent axes (see next note) - it has no {base}Motor children.",
+        "Servo child elements (pattern varies by document - either axis-named like PanServo/JawServo, or 1-based numbered like Servo1/Servo2/...): also a CHILD ELEMENT, not flat attributes (BaseSerializingVisitor::WriteServoElement: `WriteOpenTag(servo->GetName(), attrs, true)`). Literal attributes on every Servo element (Servo.h getters in parentheses): Channel (uint 0-512, default 0, GetChannel), MinLimit (uint, default 1, GetMinLimit), MaxLimit (uint, default 65535, GetMaxLimit), RangeOfMotion (float, default 180.0, GetRangeOfMotion), PivotOffsetX/PivotOffsetY/PivotOffsetZ (float, default 0 - persisted as the RAW unscaled pivot_offset_x/y/z members; the GetScaledPivotOffsetX()-style accessors used by the property grid divide/multiply by a 2D-only offset_scale of 100 and are never what gets written), ServoStyle (string, default \"Translate X\", one of \"Translate X\"/\"Translate Y\"/\"Translate Z\"/\"Rotate X\"/\"Rotate Y\"/\"Rotate Z\"), ControllerMin (int, default 1000, GetControllerMin), ControllerMax (int, default 2000, GetControllerMax), ControllerReverse (bool \"0\"/\"1\", default 0, GetControllerReverse), ControllerZeroBehavior (string, default \"Hold\", one of \"Hold\"/\"Min\"/\"Max\"/\"Center\"/\"Stop PWM\"), ControllerDataType (string, default \"Scaled\", one of \"Scaled\"/\"Absolute\"/\"1/2 Absolute\"/\"2x Absolute\"). All Controller* attributes are always written regardless of whether the assigned controller actually supports PWM (that only gates their property-grid visibility). Concrete base names instantiated: DmxSkull uses JawServo/PanServo/TiltServo/NodServo/EyeUpDownServo/EyeLeftRightServo (fixed, axis-named - note EyeUpDownServo/EyeLeftRightServo are the literal element names, not \"EyeUD\"/\"EyeLR\" as the task brief's shorthand suggested); DmxServo and DmxServo3d both use a 1-based numbered family Servo1, Servo2, ... ServoN (N = NumServos, up to 24) via CreateServo(\"Servo\" + std::to_string(i+1), i).",
+        "Mesh child elements (pattern varies - BaseMesh/YokeMesh/HeadMesh, HeadMesh/JawMesh/EyeMeshL/EyeMeshR, or numbered StaticMesh{n}/MotionMesh{n}): also a CHILD ELEMENT (BaseSerializingVisitor::WriteMeshElement). Literal attributes on every Mesh element (Mesh.h getters in parentheses): ObjFile (filepath, default \"\", GetObjFile), MeshOnly (bool \"0\"/\"1\", default 0, GetMeshOnly), Brightness (float 0-100, default 100.0, GetBrightness), Width/Height/Depth (float, default 1.0 each - the OBJ's own computed bounding-box dimensions, GetWidth/GetHeight/GetDepth; persisted so the size is known before the OBJ is (re)loaded, and restored into a separate RenderWidth/RenderHeight/RenderDepth on read via SetRenderWidth/Height/Depth - not directly user-editable in the property grid), ScaleX/ScaleY/ScaleZ (float, default 1.0, precision 3), RotateX/RotateY/RotateZ (float, default 0.0, range -180..180, precision 8), OffsetX/OffsetY/OffsetZ (float, default 0.0, precision 2). Concrete base names instantiated: DmxMovingHeadAdv uses BaseMesh + YokeMesh + HeadMesh (GetBaseMesh/GetYokeMesh/GetHeadMesh); DmxSkull uses HeadMesh + JawMesh + EyeMeshL + EyeMeshR (fixed, axis-named); DmxServo3d uses a 1-based numbered family StaticMesh{n} (n = 1..NumStatic) and MotionMesh{n} (n = 1..NumMotion), up to 24 each.",
+        "DmxImage child elements (pattern StaticImage{n}/MotionImage{n}, 1-based numbered, n = 1..NumServos up to 24): also a CHILD ELEMENT (BaseSerializingVisitor::WriteDmxImageElement), used only by DmxServo (one static + one motion image per servo). Literal attributes (DmxImage.h getters in parentheses): Image (filepath, default \"\", GetImageFile), ScaleX/ScaleY/ScaleZ (float, default 1.0), RotateX/RotateY/RotateZ (float, default 0.0, range -180..180), OffsetX/OffsetY/OffsetZ (float, default 0.0 - persisted as the RAW value already divided by DmxImage::OFFSET_SCALE = 100; the property grid multiplies by 100 for display only).",
+        "DisplayAs enum scope: DmxGeneral/DmxFloodlight/DmxFloodArea/DmxMovingHead/DmxMovingHeadAdv/DmxServo/DmxServo3d/DmxSkull are all confirmed as the exact, sole, currently-written DisplayAs literals for their respective types (src-core/models/DisplayAsType.cpp DisplayAsTypeToString/XmlNodeKeys::Dmx*Type) - there is no separate \"DmxMovingHead3D\" DisplayAs value; \"DmxServo3Axis\" is a read-only legacy alias accepted only on load for DmxServo3d (DisplayAsType.cpp's alias map / XmlDeserializingModelFactory.cpp's `type == \"DmxServo3Axis\"` check).",
+        "Property-grid applicability shared by ALL eight DMX documents (DmxPropertyAdapter::DisableUnusedProperties, inherited by every Dmx*PropertyAdapter except DmxSkullPropertyAdapter which reimplements its own subset - see DmxSkull.json): the shared/Common.json ModelStringType and ModelStringColor properties are disabled/greyed out (DMX models are hard-coded to StringType \"Single Color White\" by DmxModel::InitModel() and never expose a color picker for it), and the shared/Faces.json faceInfo and shared/DimmingCurves.json dimmingCurve child elements are likewise disabled - all three remain structurally round-tripped (BaseSerializingVisitor::WriteOtherElements is called unconditionally for every DMX Visit()) if already present in a file, just not settable from the DMX property grids. shared/States.json stateInfo and shared/SubModels.json subModel are deliberately left enabled for every DMX type (DmxPropertyAdapter.cpp comment: \"these can be used for DMX devices that use a value range to set a colour or behaviour\")."
+    ]
+}

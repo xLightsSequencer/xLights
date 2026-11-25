@@ -1,0 +1,136 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Spinner",
+    "description": "A pinwheel of radiating arms, each carrying a run of nodes outward from (or with a hollow gap around) a shared center, spanning a configurable arc.",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "SpinnerStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 640,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (SpinnerModel::_numStrings, GetNumSpinnerStrings()/SetNumSpinnerStrings()); SpinnerPropertyAdapter help text: \"typically the number of connections from the prop to your controller.\""
+        },
+        {
+            "xmlAttribute": "NodesPerArm",
+            "label": "Lights/Arm",
+            "gridKey": "SpinnerArmNodeCount",
+            "type": "uint",
+            "default": 1,
+            "min": 0,
+            "max": 200,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per arm (SpinnerModel::_nodesPerArm, GetNodesPerArm()/SetNodesPerArm()). Min is 0 (an arm can be entirely hollow/empty, distinct from the separate Hollow % gap around the center)."
+        },
+        {
+            "xmlAttribute": "ArmsPerString",
+            "label": "Arms/String",
+            "gridKey": "FoldCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 250,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Number of arms per string (SpinnerModel::_armsPerString, GetArmsPerString()/SetArmsPerString()). Verified trap: xmlAttribute \"ArmsPerString\" differs from its wxPropertyGrid key \"FoldCount\"."
+        },
+        {
+            "xmlAttribute": "Hollow",
+            "label": "Hollow %",
+            "gridKey": "Hollow",
+            "type": "uint",
+            "default": 20,
+            "min": 0,
+            "max": 80,
+            "description": "Percentage of each arm's length left empty around the center hub (SpinnerModel::_hollow, GetHollowPercent()/SetHollow())."
+        },
+        {
+            "xmlAttribute": "StartAngle",
+            "label": "Start Angle",
+            "gridKey": "StartAngle",
+            "type": "int",
+            "default": 0,
+            "min": -360,
+            "max": 360,
+            "description": "Rotational offset of the first arm from its default position, in degrees, positive or negative (SpinnerModel::_startAngle, GetStartAngle()/SetStartAngle())."
+        },
+        {
+            "xmlAttribute": "Arc",
+            "label": "Arc",
+            "gridKey": "Arc",
+            "type": "uint",
+            "default": 360,
+            "min": 1,
+            "max": 360,
+            "description": "Total angular sweep across which the arms are distributed, in degrees; 360 spaces arms evenly around a full circle (SpinnerModel::_arc, GetArcAngle()/SetArc())."
+        },
+        {
+            "xmlAttribute": "Alternate",
+            "label": "Alternate",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "description": "When \"true\", alternate arms are wired in the opposite rotational direction (SpinnerModel::_alternate, HasAlternateNodes()/SetAlternate()). Persisted as the lowercase literal true/false; always written. No dedicated 1:1 property-grid control - set as part of the composite 6-value \"Starting Location\" enum picker (gridKey \"MatrixStart\": Center/End x Clockwise/Counter-Clockwise, plus two \"Alternate\" variants) alongside the shared Dir/StartSide attributes (shared/Common.json) via SpinnerModel::EncodeStartLocation()/DecodeStartLocation()."
+        },
+        {
+            "xmlAttribute": "ZigZag",
+            "label": "Zig-Zag Start",
+            "gridKey": "ZigZag",
+            "type": "bool",
+            "boolFormat": "truefalse",
+            "default": "false",
+            "appliesWhen": {
+                "attribute": "Alternate",
+                "equals": "false"
+            },
+            "description": "When \"true\", successive arms alternate their start direction (SpinnerModel::_zigzag, HasZigZag()/SetZigZag()). Persisted as the lowercase literal true/false; always written. Only enabled in the property grid when Alternate is false (SpinnerPropertyAdapter::UpdateTypeProperties); DecodeStartLocation() also forces this to false internally when an \"Alternate\" starting-location option is chosen."
+        }
+    ],
+    "notes": [
+        "Starting Location is a single composite picker (gridKey \"MatrixStart\", reusing Matrix's gridKey name coincidentally) covering three underlying attributes at once: the shared Dir/StartSide (shared/Common.json) plus this file's own Alternate. See SpinnerModel::EncodeStartLocation()/DecodeStartLocation() for the 6-way mapping (Center/End x CW/CCW, plus Center-Alternate CW/CCW)."
+    ]
+}

@@ -1,0 +1,109 @@
+{
+    "schemaVersion": 1,
+    "objectType": "model",
+    "displayAs": "Circle",
+    "description": "One or more concentric rings of nodes. Supports the same inside-to-outside layer-size mechanism as Arches, always active (a Circle with no explicit layers still has one implicit layer holding all its nodes).",
+    "extends": [
+        "shared/Common.json",
+        "shared/ScreenLocation.json",
+        "shared/ControllerConnection.json"
+    ],
+    "storage": {
+        "file": "xlights_rgbeffects.xml",
+        "node": "models/model"
+    },
+    "childElements": [
+        {
+            "name": "faceInfo",
+            "ref": "shared/Faces.json",
+            "description": "Singing face definitions"
+        },
+        {
+            "name": "stateInfo",
+            "ref": "shared/States.json",
+            "description": "State definitions"
+        },
+        {
+            "name": "subModel",
+            "ref": "shared/SubModels.json",
+            "description": "Submodel definitions"
+        },
+        {
+            "name": "dimmingCurve",
+            "ref": "shared/DimmingCurves.json",
+            "description": "Dimming curve"
+        },
+        {
+            "name": "Aliases",
+            "description": "Optional wrapper containing one or more <alias name=\"...\"/> children: alternate historical names for this model, used to match renamed models on import/mapping (BaseSerializingVisitor::WriteAliases / XmlDeserializingModelFactory::DeserializeAliases). Not yet described by a dedicated shared fragment in this metadata tree."
+        }
+    ],
+    "properties": [
+        {
+            "xmlAttribute": "NumStrings",
+            "label": "# Strings",
+            "gridKey": "CircleStringCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 100,
+            "legacyAttributes": [
+                "parm1"
+            ],
+            "description": "Number of physical connections/strings from the prop to the controller (CircleModel::_numStrings; CirclePropertyAdapter help text: \"typically the number of connections from the prop to your controller\")."
+        },
+        {
+            "xmlAttribute": "NodesPerString",
+            "label": "Nodes/String",
+            "gridKey": "CircleLightCount",
+            "type": "uint",
+            "default": 1,
+            "min": 1,
+            "max": 2000,
+            "legacyAttributes": [
+                "parm2"
+            ],
+            "description": "Nodes per string (CircleModel::_nodesPerString; total lights = NumStrings x NodesPerString, redistributed across the layer(s) defined by LayerSizes). Grid label is \"Lights/String\" for SingleNode string types, \"Nodes/String\" otherwise; same xmlAttribute/gridKey either way."
+        },
+        {
+            "xmlAttribute": "centerPercent",
+            "label": "Center %",
+            "gridKey": "CircleCenterPercent",
+            "type": "uint",
+            "default": 0,
+            "min": 0,
+            "max": 100,
+            "legacyAttributes": [
+                "parm3"
+            ],
+            "description": "Radius of the innermost layer, as a percentage of the outer radius (CircleModel::_centerPercent; 0 = a filled disc, 100 = all layers on the same ring). CORRECTION vs the brief's survey (which did not list a parm fallback for this attribute): XmlDeserializingModelFactory::DeserializeCircle reads it via ReadAttrWithParmFallback(..., CenterPercentAttribute, Parm3Attribute, \"0\") - i.e. it DOES fall back to legacy parm3, like NumStrings/NodesPerString do to parm1/parm2."
+        },
+        {
+            "xmlAttribute": "InsideOut",
+            "gridKey": "CircleStart",
+            "type": "bool",
+            "boolFormat": "01",
+            "default": "0",
+            "relatedTo": [
+                "Dir",
+                "StartSide"
+            ],
+            "description": "When true, layer 0 (\"Inside\" in the generic Layers UI) is drawn as the innermost ring and the last layer as the outermost; when false (default), layer 0 is drawn as the OUTERMOST ring instead (CircleModel::_insideOut; CircleModel::SetCircleCoord radius formula) - see this file's notes for the resulting label/visual mismatch. Always written unconditionally (unlike Locked/Active which are conditionally written elsewhere). Folded together with the shared Dir/StartSide attributes (shared/Common.json) into the single 8-value \"CircleStart\"/\"Starting Location\" property-grid enum (Top/Bottom x Outer/Inner x CW/CCW; CirclePropertyAdapter::OnPropertyGridChange \"CircleStart\")."
+        },
+        {
+            "xmlAttribute": "LayerSizes",
+            "gridKey": "Layers",
+            "type": "string",
+            "default": "",
+            "legacyAttributes": [
+                "circleSizes"
+            ],
+            "encoding": "Comma-separated list of per-layer node counts (Model::SerialiseLayerSizes/DeserializeLayerSizes). The property grid exposes this as a \"Layers\" count spinner (gridKey \"Layers\", range 1-100) plus one \"Layer{n}\" row per entry (0-based n, range 1-1000 each) - see ModelPropertyAdapter::AddLayerSizeProperty - but only this ONE xmlAttribute is ever currently written. INVARIANT for writers: xLights keeps the total-node attribute equal to the SUM of this list (parm2 (nodes per string) = sum(LayerSizes), enforced by CircleModel::OnLayerSizesChange whenever layer sizes change in the UI); an external writer (e.g. an MCP) must set both consistently or the model will allocate the wrong node count (node allocation uses the total attribute, not this list - CircleModel::InitModel).",
+            "description": "Per-layer node-count list (CircleModel::InitCircle/InitModel always ensures at least one layer summing to NumStrings x NodesPerString). CORRECTION vs the brief's survey guess that \"circleSizes\" is the current attribute: XmlDeserializingModelFactory::DeserializeCircle shows the CURRENT xmlAttribute is the generic \"LayerSizes\" (same name Arches.json uses, in this separate document so no collision); lowercase \"circleSizes\" (XmlNodeKeys::CircleSizesAttribute) is a legacy READ-ONLY attribute that, unusually, is preferred over LayerSizes when BOTH are present in a file, and its comma values are reversed (ReverseCSV) before use, because the legacy format stored sizes outside-to-inside while the current LayerSizes convention stores inside-to-outside. This is the opposite precedence of the parm1/2/3 fallback pattern used elsewhere (there, the NEW name always wins over the legacy one)."
+        }
+    ],
+    "notes": [
+        "Layer 0 visual meaning depends on InsideOut: CircleModel::SetCircleCoord's radius formula makes layer 0 the OUTERMOST ring when InsideOut=false (the default) and the INNERMOST ring when InsideOut=true. The generic Layers property-grid labels (\"Inside\" for row 0, \"Outside\" for the last row - shared ModelPropertyAdapter::AddLayerSizeProperty, written from the Arches convention) are therefore only accurate for Circle when InsideOut=true; with the default InsideOut=false they are visually reversed. Flagged as an observed inconsistency, not something this metadata task changes.",
+        "StartSide default override: XmlDeserializingModelFactory::DeserializeCircle contains `if (node.attribute(\"StartSide\").empty()) model->SetIsBtoT(false);` - i.e. for a legacy/partial file that omits StartSide entirely, Circle defaults StartSide to \"T\" (top-to-bottom), overriding the generic default of \"B\" documented in shared/Common.json. Only relevant to reading old/hand-edited files missing the attribute; every model unconditionally writes StartSide on save (shared/Common.json), so this never matters for round-tripping a file this version of xLights wrote."
+    ]
+}
