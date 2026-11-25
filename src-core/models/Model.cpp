@@ -2946,6 +2946,7 @@ void Model::ExportAsCustomXModel(BaseSerializingVisitor& visitor) const
     // Write dimensions element (when ruler is active)
     visitor.WriteDimensionsElement(*this);
 
+    visitor.WriteEmbeddedFiles();
     visitor.WriteCloseTag();
 }
 

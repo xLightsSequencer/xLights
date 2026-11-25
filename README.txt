@@ -40,6 +40,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  ticked, and Show Pivot Axes now draws the pivot axes in the layout
     -bug (dkulp)                 DMX Servo 3D meshes linked to a rotating mesh now swing about that mesh's pivot
                                  instead of turning in place
+    -enh (dkulp)                 Exported .xmodel files carry the images, 3D meshes (with their materials and textures)
+                                 and matrix face images the models use, so they work when shared; importing one puts
+                                 the files in the show's modeldownload folder
 
 2026.21  November 24, 2026
 

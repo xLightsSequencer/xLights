@@ -791,6 +791,8 @@
 		<Unit filename="../src-core/XmlSerializer/XmlNodeKeys.h" />
 		<Unit filename="../src-core/XmlSerializer/LayoutRecordPatch.cpp" />
 		<Unit filename="../src-core/XmlSerializer/LayoutRecordPatch.h" />
+		<Unit filename="../src-core/XmlSerializer/XModelFiles.cpp" />
+		<Unit filename="../src-core/XmlSerializer/XModelFiles.h" />
 		<Unit filename="../src-core/XmlSerializer/XmlSerializeFunctions.cpp" />
 		<Unit filename="../src-core/XmlSerializer/XmlSerializeFunctions.h" />
 		<Unit filename="../src-core/XmlSerializer/XmlSerializer.h" />

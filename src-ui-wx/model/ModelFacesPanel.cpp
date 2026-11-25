@@ -41,6 +41,7 @@
 #include "shared/utils/NodesGridCellEditor.h"
 #include "layout/ModelPreview.h"
 #include "render/DimmingCurve.h"
+#include "XmlSerializer/XModelFiles.h"
 #include "utils/NodeUtils.h"
 #include "utils/ExternalHooks.h"
 #include "xLightsMain.h"
@@ -1761,6 +1762,8 @@ void ModelFacesPanel::ImportFaces(const wxString& filename)
         DisplayError(filename + " contains invalid XML structure.");
         return;
     }
+    // matrix face images may be packed into the file
+    XModelFiles::Unpack(root, xLightsApp::GetFrame()->GetShowDirectory());
 
     FaceStateData allFaces;
     auto processFaceInfoChildren = [&](pugi::xml_node parent) {

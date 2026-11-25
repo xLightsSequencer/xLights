@@ -26,6 +26,7 @@
 #include "Color.h"
 #include "../models/CubeModel.h"
 #include "../models/CustomModel.h"
+#include "XModelFiles.h"
 #include "DimmingCurve.h"
 #include "../models/GridlinesObject.h"
 #include "../models/IciclesModel.h"
@@ -93,7 +94,21 @@ static std::string LowerStr(const std::string& s) {
 // moved or synced across platforms; anything else keeps its absolute path.
 // forExport keeps everything absolute so an exported document stands alone.
 std::string BaseSerializingVisitor::FilePathToWrite(const std::string& file) const {
-    return forExport ? file : FileUtils::MakeRelativeFileOrOriginal(file);
+    if (forExport) {
+        return packer != nullptr ? packer->Add(file) : file;
+    }
+    return FileUtils::MakeRelativeFileOrOriginal(file);
+}
+
+void BaseSerializingVisitor::WriteEmbeddedFiles() {
+    if (packer == nullptr) return;
+    for (const auto& f : packer->TakePending()) {
+        AttrCollector attrs;
+        attrs.Add(XModelFiles::PathAttribute, f.path);
+        WriteOpenTag(XModelFiles::NodeName, attrs, false);
+        WriteBodyText(f.base64);
+        WriteCloseTag();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -482,8 +497,13 @@ void BaseSerializingVisitor::WriteFacesAndStates(const Model* m) {
     for (const auto& f : faces) {
         AttrCollector attrs;
         attrs.Add(XmlNodeKeys::StateNameAttribute, f.first);
+        auto type = f.second.find(XmlNodeKeys::StateTypeAttribute);
+        const bool matrix = type != f.second.end() && type->second == XmlNodeKeys::MatrixType;
         for (const auto& f2 : f.second) {
-            if (!f2.first.empty()) attrs.Add(f2.first, f2.second);
+            if (f2.first.empty()) continue;
+            // a matrix face's Mouth/Eyes entries name image files
+            const bool image = matrix && (f2.first.rfind("Mouth", 0) == 0 || f2.first.rfind("Eyes", 0) == 0);
+            attrs.Add(f2.first, image && forExport && !f2.second.empty() ? FilePathToWrite(f2.second) : f2.second);
         }
         SortAttributes(attrs);
         WriteOpenTag(XmlNodeKeys::FaceNodeName, attrs, true);
@@ -573,6 +593,7 @@ void BaseSerializingVisitor::WriteOtherElements(const Model* m) {
     WriteDimmingCurve(m);
     WriteAliases(m->GetAliases());
     WriteSubmodels(m);
+    WriteEmbeddedFiles();
 }
 
 void BaseSerializingVisitor::WriteDimensionsElement(const Model& model) {

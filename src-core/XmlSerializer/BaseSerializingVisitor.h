@@ -44,6 +44,10 @@ class Mesh;
 class ModelGroup;
 class Servo;
 
+namespace XModelFiles {
+class Packer;
+}
+
 class BaseSerializingVisitor : public BaseObjectVisitor {
 public:
 
@@ -135,11 +139,18 @@ public:
     // Attribute-collecting helper — public so callers can add super-string colours
     void AddSuperStrings(const Model& model, AttrCollector& attrs);
 
+    // While exporting, file references are packed into the document instead
+    // of written as paths (see XModelFiles). The packer outlives the visitor.
+    void SetFilePacker(XModelFiles::Packer* p) { packer = p; }
+    // Writes the files packed since the last call, inside the open element.
+    void WriteEmbeddedFiles();
+
 protected:
     explicit BaseSerializingVisitor(bool exporting = false) : forExport(exporting) {}
     ~BaseSerializingVisitor() override = default;
 
     bool forExport;
+    XModelFiles::Packer* packer = nullptr;
 
     // File references are stored relative to the show/media folder that contains
     // them, except when exporting, where the document must stand alone.

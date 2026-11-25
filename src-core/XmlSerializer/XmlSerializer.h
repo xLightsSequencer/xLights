@@ -15,6 +15,7 @@
 #include "XmlDeserializingObjectFactory.h"
 #include "XmlSerializeFunctions.h"
 #include "XmlSerializingVisitor.h"
+#include "XModelFiles.h"
 #include <vector>
 #include <pugixml.hpp>
 
@@ -176,13 +177,19 @@ struct XmlSerializer {
     // Serialize a single model into an XML document.
     // forExport keeps file references absolute so the document stands alone on
     // another machine; leave it false for anything that stays in this show.
-    pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false, bool forExport = false) {
+    // embedFiles (export only) packs the files the model refers to into the
+    // document so it can be handed to someone else; see XModelFiles.
+    pugi::xml_document SerializeModel(const Model* model, bool includeGroups = false, bool forExport = false, bool embedFiles = false) {
         pugi::xml_document doc;
 
         pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
         docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
 
+        XModelFiles::Packer packer(model->GetName());
         XmlSerializingVisitor visitor{ docNode, forExport };
+        if (forExport && embedFiles) {
+            visitor.SetFilePacker(&packer);
+        }
         model->Accept(visitor);
         if (includeGroups) {
             XmlSerialize::SerializeModelGroupsForModel(model, docNode, { model });
@@ -193,15 +200,25 @@ struct XmlSerializer {
     }
 
     // Serialize multiple models into a single XML document under one <models> root
-    pugi::xml_document SerializeModels(const std::vector<const Model*>& models, bool includeGroups = false, bool forExport = false) {
+    // Every file goes in the first model that refers to it, all under the
+    // first model's name.
+    pugi::xml_document SerializeModels(const std::vector<const Model*>& models, bool includeGroups = false, bool forExport = false, bool embedFiles = false) {
         pugi::xml_document doc;
 
         pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
         docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
 
+        const Model* first = nullptr;
+        for (const Model* model : models) {
+            if (model != nullptr && first == nullptr) first = model;
+        }
+        XModelFiles::Packer packer(first != nullptr ? first->GetName() : std::string("models"));
         for (const Model* model : models) {
             if (model == nullptr) continue;
             XmlSerializingVisitor visitor{ docNode, forExport };
+            if (forExport && embedFiles) {
+                visitor.SetFilePacker(&packer);
+            }
             model->Accept(visitor);
             if (includeGroups) {
                 XmlSerialize::SerializeModelGroupsForModel(model, docNode, models);

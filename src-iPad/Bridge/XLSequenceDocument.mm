@@ -7304,7 +7304,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     ObtainAccessToURL([path UTF8String], true);
     XmlSerializer serializer;
     pugi::xml_document doc = serializer.SerializeModels(models, /*includeGroups*/ true,
-                                                         /*forExport*/ true);
+                                                         /*forExport*/ true, /*embedFiles*/ true);
     return doc.save_file(path.UTF8String) ? YES : NO;
 }
 
@@ -7331,7 +7331,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
     ObtainAccessToURL([path UTF8String], true);
     XmlSerializer serializer;
-    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true, /*forExport*/ true);
+    pugi::xml_document doc = serializer.SerializeModel(m, /*includeGroups*/ true, /*forExport*/ true, /*embedFiles*/ true);
     return doc.save_file(path.UTF8String) ? YES : NO;
 }
 

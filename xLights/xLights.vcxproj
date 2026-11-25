@@ -1183,6 +1183,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClCompile Include="..\src-core\XmlSerializer\XmlDeserializingModelFactory.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\XmlDeserializingObjectFactory.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\LayoutRecordPatch.cpp" />
+    <ClCompile Include="..\src-core\XmlSerializer\XModelFiles.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\XmlSerializeFunctions.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\XmlSerializingVisitor.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\BaseSerializingVisitor.cpp" />
@@ -1973,6 +1974,7 @@ xcopy /Y /S /I "$(SolutionDir)..\resources\meshobjects\*" "$(TargetDir)meshobjec
     <ClInclude Include="..\src-core\XmlSerializer\LayoutGroupData.h" />
     <ClInclude Include="..\src-core\XmlSerializer\XmlNodeKeys.h" />
     <ClInclude Include="..\src-core\XmlSerializer\LayoutRecordPatch.h" />
+    <ClInclude Include="..\src-core\XmlSerializer\XModelFiles.h" />
     <ClInclude Include="..\src-core\XmlSerializer\XmlSerializeFunctions.h" />
     <ClInclude Include="..\src-core\XmlSerializer\XmlSerializer.h" />
     <ClInclude Include="..\src-core\XmlSerializer\XmlSerializingVisitor.h" />

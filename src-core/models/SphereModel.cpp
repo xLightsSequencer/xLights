@@ -186,6 +186,7 @@ void SphereModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     visitor.WriteFacesAndStates(this);
     visitor.WriteSubmodels(this);
     visitor.WriteDimensionsElement(*this);
+    visitor.WriteEmbeddedFiles();
     visitor.WriteCloseTag();
 }
 

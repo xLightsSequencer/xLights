@@ -1044,6 +1044,7 @@ void CubeModel::ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     visitor.WriteOpenTag("custommodel", attrs);
     visitor.WriteFacesAndStates(this);
     visitor.WriteSubmodels(this);
+    visitor.WriteEmbeddedFiles();
     visitor.WriteCloseTag();
 }
 

@@ -6295,6 +6295,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
     if (!docLoaded) {
         doc.load_file(last_model.c_str());
     }
+    XModelFiles::Unpack(doc.document_element(), xlights->GetShowDirectory());
     if (doc.document_element()) {
         pugi::xml_node root = doc.document_element();
 
@@ -6688,6 +6689,7 @@ void LayoutPanel::FinalizeModel()
                 pugi::xml_document extraDoc;
                 extraDoc.load_file(extraModelPath.c_str());
                 if (!extraDoc.document_element()) continue;
+                XModelFiles::Unpack(extraDoc.document_element(), xlights->GetShowDirectory());
 
                 bool extraCancelled = false;
                 xlights->GetOutputModelManager()->DisableASAPWork(true);
@@ -8426,6 +8428,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             if (!fn.IsEmpty()) {
                 ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
+                XModelFiles::Packer packer(md->GetName());
+                visitor.SetFilePacker(&packer);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
                 else
@@ -8443,6 +8447,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             if (!fn.IsEmpty()) {
                 ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
+                XModelFiles::Packer packer(md->GetName());
+                visitor.SetFilePacker(&packer);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
                 else
@@ -8507,8 +8513,8 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
-                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true, /*embedFiles*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true, /*embedFiles*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -11723,6 +11729,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             if (!fn.IsEmpty()) {
                 ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
+                XModelFiles::Packer packer(md->GetName());
+                visitor.SetFilePacker(&packer);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
                 else
@@ -11740,6 +11748,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             if (!fn.IsEmpty()) {
                 ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
+                XModelFiles::Packer packer(md->GetName());
+                visitor.SetFilePacker(&packer);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
                 else
@@ -11802,8 +11812,8 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
-                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true)
-                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true);
+                ? serializer.SerializeModel(selectedModels[0], /*includeGroups*/ true, /*forExport*/ true, /*embedFiles*/ true)
+                : serializer.SerializeModels(selectedModels, /*includeGroups*/ true, /*forExport*/ true, /*embedFiles*/ true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {

@@ -2913,6 +2913,7 @@ public:
         if (!parseRes) return nil;
         root = xdoc.document_element();
         if (!root) return nil;
+        XModelFiles::Unpack(root, rctx->GetShowDirectory());
 
         if (!rctx->AbortRender(5000)) return nil;
         // CreateDefaultModelFromSavedModelNode wants a baseline Model*
