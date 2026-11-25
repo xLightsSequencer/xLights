@@ -69,9 +69,14 @@ protected:
     void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
     bool GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const override;
     bool HasValidServoSetup() const;
-    // Fills motion_matrix[i] for each servo/mesh from servo positions,
-    // following the Servo Linkage and Mesh Linkage settings.
-    void ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion_matrix) const;
+    // From the servo positions, fills for each motion mesh the motion its own
+    // servos give it (own, following Servo Linkage) and the motion of the
+    // meshes it hangs from (carried, following Mesh Linkage). Mesh i is drawn
+    // at carried[i] * offset * pivot * own[i] * pivot^-1, so a linked mesh
+    // swings about each parent's pivot as well as turning about its own.
+    void ComputeMotionMatrices(const float* servo_pos, glm::mat4* own, glm::mat4* carried) const;
+    // A mesh's own motion in model space: own about its pivot, at its offset.
+    glm::mat4 MeshMotion(int mesh, const glm::mat4& own) const;
 
     float brightness = 100.0f;
 

@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 
 #include "DmxModel.h"
@@ -168,42 +169,6 @@ void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *spr
             mesh3d->SetMaterialColor(color_name, &new_color);
         }
 
-        auto vac = sprogram->getAccumulator();
-        int start = vac->getCount();
-        if (use_pivot && rotation) {
-            /*
-            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
-            float mw = std::min(std::min(4.0f / scale.x, 4.0f / scale.y);
-            float mw2 = std::min(std::min(3.0f / scale.x, 3.0f / scale.y);
-
-            
-            xlColor pink = xlColor(255, 0, 255);
-            vac->AddCircleAsTriangles(0, 0, 0, mw, xlBLACK);
-            vac->AddCircleAsTriangles(0, 0, 0, mw2, pink);
-            vac->AddVertex(0.0-mw/2, 0.0-mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0+mw/2, 0.0+mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0-mw/2, 0.0+mw/2, 0, xlBLACK);
-            vac->AddVertex(0.0+mw/2, 0.0-mw/2, 0, xlBLACK);
-             
-             
-             
-             glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
-             float x1 = pivot_offset_x;
-             float y1 = pivot_offset_y;
-             float z1 = pivot_offset_z;
-             float offx = width * scalex * scale.x * rscale;
-             float offz = depth * scalez * scale.z * rscale;
-             glm::vec4 v = base_matrix * translationMatrix * glm::vec4(glm::vec3(x1, y1, z1), 1.0f);
-             x1 = v.x; y1 = v.y; z1 = v.z;
-             va.AddVertex(x1 - offx, y1, z1, pink);
-             va.AddVertex(x1 + offx, y1, z1, pink);
-             va.AddVertex(x1, y1, z1 - offz, pink);
-             va.AddVertex(x1, y1, z1 + offz, pink);
-             va.Finish(GL_LINES);
-            */
-        }
-
-        int end = vac->getCount();
         sprogram->addStep([=, this](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             ctx->ApplyMatrix(m);
@@ -212,13 +177,6 @@ void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *spr
             } else {
                 ctx->drawMeshSolids(mesh3d.get(), this->brightness, preview->Is3D());
             }
-            if (end != start) {
-                if (rotation) {
-                    ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);
-                }
-                ctx->drawTriangles(vac, start, end - 4 - start);
-                ctx->drawLines(vac, end - 4, 4);
-            }
             ctx->PopMatrix();
         });
         if (!mesh_only) {
@@ -226,13 +184,30 @@ void Mesh::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *spr
                 ctx->PushMatrix();
                 ctx->ApplyMatrix(m);
                 ctx->drawMeshTransparents(mesh3d.get(), this->brightness);
-                if (end != start) {
-                    if (rotation) {
-                        ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);
-                    }
-                    ctx->drawTriangles(vac, start, end - 4 - start);
-                    ctx->drawLines(vac, end - 4, 4);
-                }
+                ctx->PopMatrix();
+            });
+        }
+        if (use_pivot && rotation) {
+            // Axes through the pivot, in the frame the mesh turns in, so they
+            // stay put while the mesh rotates. About 10 world units each way.
+            glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
+            auto half = [](float s) { return 10.0f / std::max(std::abs(s), 0.001f); };
+            const float hx = half(scale.x), hy = half(scale.y), hz = half(scale.z);
+            const float px = pivot_offset_x, py = pivot_offset_y, pz = pivot_offset_z;
+            const xlColor pink(255, 0, 255);
+            auto vac = sprogram->getAccumulator();
+            int start = vac->getCount();
+            vac->AddVertex(px - hx, py, pz, pink);
+            vac->AddVertex(px + hx, py, pz, pink);
+            vac->AddVertex(px, py - hy, pz, pink);
+            vac->AddVertex(px, py + hy, pz, pink);
+            vac->AddVertex(px, py, pz - hz, pink);
+            vac->AddVertex(px, py, pz + hz, pink);
+            glm::mat4 pm = base_matrix * translationMatrix;
+            sprogram->addStep([=](xlGraphicsContext *ctx) {
+                ctx->PushMatrix();
+                ctx->ApplyMatrix(pm);
+                ctx->drawLines(vac, start, 6);
                 ctx->PopMatrix();
             });
         }

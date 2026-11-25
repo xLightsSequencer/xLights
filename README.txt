@@ -36,6 +36,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 The Servo effect's position line now shows in the grid before the sequence is rendered,
                                  and also when the effect has no palette colors selected
     -bug (dkulp)                 DMX Servo model images ignored the model's Brightness setting in the preview
+    -bug (dkulp)                 DMX Servo 3D rotating meshes ignored their pivot offset unless Show Pivot Axes was
+                                 ticked, and Show Pivot Axes now draws the pivot axes in the layout
+    -bug (dkulp)                 DMX Servo 3D meshes linked to a rotating mesh now swing about that mesh's pivot
+                                 instead of turning in place
 
 2026.21  November 24, 2026
 

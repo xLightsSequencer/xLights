@@ -890,6 +890,89 @@ TEST_CASE("Servo3d rotate servo turns its motion mesh", "[dmx2]") {
     }
 }
 
+namespace {
+// One 8 bit Rotate Z servo with 90 degrees of travel; the motion mesh sits
+// 0.3 right of the model centre and turns about a pivot 0.5 right of and
+// 0.25 above that.
+DmxServo3d* AddPivotingServo3d(Show& s, const CubeFiles& cube, bool showPivotAxes) {
+    auto* m = As<DmxServo3d>(s.Add(Dmx("DmxServo3d", "DmxChannelCount=\"1\" NumServos=\"1\" NumStatic=\"1\" NumMotion=\"1\" Bits16=\"0\"",
+        "<Servo1 Channel=\"1\" MinLimit=\"0\" MaxLimit=\"255\" RangeOfMotion=\"90\" ServoStyle=\"Rotate Z\" PivotOffsetX=\"0.5\" PivotOffsetY=\"0.25\"/>" +
+            cube.Mesh("StaticMesh1") + cube.Mesh("MotionMesh1", "OffsetX=\"0.3\""))));
+    m->SetShowPivot(showPivotAxes);
+    return m;
+}
+
+// The pivot axes the layout draws: the 6 vertex line draw, if any.
+const RangeDraw* PivotAxes(const FakeContext& ctx) {
+    for (const auto& l : ctx.lines) {
+        if (l.count == 6) {
+            return &l;
+        }
+    }
+    return nullptr;
+}
+} // namespace
+
+TEST_CASE("Servo3d rotate servo turns its mesh about the pivot", "[dmx2]") {
+    CubeFiles cube;
+    // Show Pivot Axes only draws the axes; it must not change the motion
+    for (bool showPivotAxes : { false, true }) {
+        INFO("show pivot axes " << showPivotAxes);
+        Show s;
+        auto* m = AddPivotingServo3d(s, cube, showPivotAxes);
+        FakePreview rest;
+        DrawLayout(m, rest, nullptr, true);
+        REQUIRE(rest.ctx.solids.size() == 2);
+        Chan(m, 1, 255);
+        FakePreview moved;
+        DrawEffect(m, moved);
+        REQUIRE(moved.ctx.solids.size() == 2);
+        glm::mat4 delta = moved.ctx.solids[1].matrix * glm::inverse(rest.ctx.solids[1].matrix);
+        // end of travel is -90 degrees: the pivot stays put and a point half
+        // a unit right of it swings to half a unit below it
+        glm::vec3 pivot(0.8f, 0.25f, 0.0f);
+        glm::vec3 p = Apply(delta, pivot);
+        CHECK(p.x == Approx(pivot.x).margin(1e-4));
+        CHECK(p.y == Approx(pivot.y).margin(1e-4));
+        glm::vec3 q = Apply(delta, pivot + glm::vec3(0.5f, 0, 0));
+        CHECK(q.x == Approx(pivot.x).margin(1e-4));
+        CHECK(q.y == Approx(pivot.y - 0.5f).margin(1e-4));
+    }
+}
+
+TEST_CASE("Servo3d Show Pivot Axes draws axes through the pivot in the layout", "[dmx2]") {
+    CubeFiles cube;
+    SECTION("ticked") {
+        Show s;
+        auto* m = AddPivotingServo3d(s, cube, true);
+        FakePreview p;
+        DrawLayout(m, p, nullptr, true);
+        const RangeDraw* axes = PivotAxes(p.ctx);
+        REQUIRE(axes != nullptr);
+        // each axis is centred on the pivot, which is drawn at the mesh offset plus the pivot offset
+        const auto* acc = static_cast<const RecColorAcc*>(axes->acc);
+        for (int i = 0; i < 6; i += 2) {
+            const auto& a = acc->v[axes->start + i];
+            const auto& b = acc->v[axes->start + i + 1];
+            glm::vec3 mid = Apply(axes->matrix, glm::vec3((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2));
+            CHECK(mid.x == Approx(0.8f).margin(1e-4));
+            CHECK(mid.y == Approx(0.25f).margin(1e-4));
+            CHECK(mid.z == Approx(0.0f).margin(1e-4));
+        }
+        // and not in the house preview
+        FakePreview live;
+        DrawEffect(m, live);
+        CHECK(PivotAxes(live.ctx) == nullptr);
+    }
+    SECTION("not ticked") {
+        Show s;
+        auto* m = AddPivotingServo3d(s, cube, false);
+        FakePreview p;
+        DrawLayout(m, p, nullptr, true);
+        CHECK(PivotAxes(p.ctx) == nullptr);
+    }
+}
+
 TEST_CASE("Servo3d linked servo drives another mesh", "[dmx2]") {
     CubeFiles cube;
     Show s;
@@ -932,6 +1015,64 @@ TEST_CASE("Servo3d mesh linkage chains motion onto a child mesh", "[dmx2]") {
     CHECK(m1.y == Approx(0.0f).margin(1e-3));
     CHECK(m2.x == Approx(10.0f).margin(1e-3));
     CHECK(m2.y == Approx(20.0f).margin(1e-3));
+}
+
+TEST_CASE("Servo3d linked mesh swings about its parent's pivot", "[dmx2]") {
+    CubeFiles cube;
+    Show s;
+    // an upper arm (mesh 1) turning about a shoulder pivot, and a forearm
+    // (mesh 2) hanging from it that turns about its own elbow pivot
+    auto* m = As<DmxServo3d>(s.Add(Dmx("DmxServo3d", "DmxChannelCount=\"2\" NumServos=\"2\" NumStatic=\"1\" NumMotion=\"2\" Bits16=\"0\" Mesh2Linkage=\"Mesh 1\"",
+        "<Servo1 Channel=\"1\" MinLimit=\"0\" MaxLimit=\"255\" RangeOfMotion=\"90\" ServoStyle=\"Rotate Z\" PivotOffsetX=\"0.5\" PivotOffsetY=\"0.25\"/>"
+        "<Servo2 Channel=\"2\" MinLimit=\"0\" MaxLimit=\"255\" RangeOfMotion=\"90\" ServoStyle=\"Rotate Z\" PivotOffsetX=\"-0.2\" PivotOffsetY=\"0.1\"/>" +
+            cube.Mesh("StaticMesh1") + cube.Mesh("MotionMesh1", "OffsetX=\"0.3\"") + cube.Mesh("MotionMesh2", "OffsetX=\"1.5\" OffsetY=\"-0.4\""))));
+    REQUIRE(m->GetMeshLink(1) == 0);
+    FakePreview rest;
+    DrawLayout(m, rest, nullptr, true);
+    REQUIRE(rest.ctx.solids.size() == 3);
+    const glm::vec3 shoulder(0.8f, 0.25f, 0.0f);
+    const glm::vec3 elbow(1.3f, -0.3f, 0.0f);
+    auto delta = [&](const FakePreview& p, int mesh) { return p.ctx.solids[mesh].matrix * glm::inverse(rest.ctx.solids[mesh].matrix); };
+    auto check = [](glm::vec3 got, glm::vec3 want) {
+        INFO("got (" << got.x << ", " << got.y << ") want (" << want.x << ", " << want.y << ")");
+        CHECK(got.x == Approx(want.x).margin(1e-4));
+        CHECK(got.y == Approx(want.y).margin(1e-4));
+        CHECK(got.z == Approx(want.z).margin(1e-4));
+    };
+
+    SECTION("the shoulder turns: both meshes swing -90 degrees about it") {
+        Chan(m, 1, 255);
+        FakePreview p;
+        DrawEffect(m, p);
+        REQUIRE(p.ctx.solids.size() == 3);
+        for (int mesh : { 1, 2 }) {
+            INFO("mesh " << mesh);
+            check(Apply(delta(p, mesh), shoulder), shoulder);
+            check(Apply(delta(p, mesh), shoulder + glm::vec3(1, 0, 0)), shoulder + glm::vec3(0, -1, 0));
+        }
+    }
+    SECTION("the elbow turns: only the forearm moves, about the elbow") {
+        Chan(m, 2, 255);
+        FakePreview p;
+        DrawEffect(m, p);
+        REQUIRE(p.ctx.solids.size() == 3);
+        check(Apply(delta(p, 1), elbow + glm::vec3(1, 0, 0)), elbow + glm::vec3(1, 0, 0));
+        check(Apply(delta(p, 2), elbow), elbow);
+        check(Apply(delta(p, 2), elbow + glm::vec3(1, 0, 0)), elbow + glm::vec3(0, -1, 0));
+    }
+    SECTION("both turn: the elbow is carried round the shoulder") {
+        Chan(m, 1, 255);
+        Chan(m, 2, 255);
+        FakePreview p;
+        DrawEffect(m, p);
+        REQUIRE(p.ctx.solids.size() == 3);
+        // the elbow sits 0.5 right of and 0.55 below the shoulder, so a -90
+        // degree turn of the shoulder takes it to 0.55 left and 0.5 below
+        glm::vec3 movedElbow = shoulder + glm::vec3(-0.55f, -0.5f, 0);
+        check(Apply(delta(p, 2), elbow), movedElbow);
+        // and the forearm has turned -180 degrees in all
+        check(Apply(delta(p, 2), elbow + glm::vec3(1, 0, 0)), movedElbow + glm::vec3(-1, 0, 0));
+    }
 }
 
 TEST_CASE("Servo3d in the layout draws meshes at rest", "[dmx2]") {

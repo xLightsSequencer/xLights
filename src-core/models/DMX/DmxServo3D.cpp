@@ -369,14 +369,17 @@ bool DmxServo3d::HasValidServoSetup() const
     return true;
 }
 
-void DmxServo3d::ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion_matrix) const
+void DmxServo3d::ComputeMotionMatrices(const float* servo_pos, glm::mat4* own, glm::mat4* carried) const
 {
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 servo_matrix[SUPPORTED_SERVOS];
 
+    for (int i = 0; i < SUPPORTED_SERVOS; ++i) {
+        own[i] = Identity;
+        carried[i] = Identity;
+    }
     for (int i = 0; i < (int)servos.size(); ++i) {
         servo_matrix[i] = Identity;
-        motion_matrix[i] = Identity;
         servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
     }
 
@@ -384,18 +387,19 @@ void DmxServo3d::ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion
     // mesh only while it hasn't been redirected elsewhere by Servo Linkage.
     // Own servo first, then any redirected onto it -- matrix multiplication
     // is not commutative and rotate-style servos depend on this order.
-    auto applyMeshServos = [&](glm::mat4& matrix, int meshIdx) {
-        if (servo_links[meshIdx] == -1) {
-            matrix = matrix * servo_matrix[meshIdx];
+    for (int i = 0; i < (int)servos.size(); ++i) {
+        if (servo_links[i] == -1) {
+            own[i] = own[i] * servo_matrix[i];
         }
         for (int j = 0; j < (int)servos.size(); ++j) {
-            if (j != meshIdx && servo_links[j] == meshIdx) {
-                matrix = matrix * servo_matrix[j];
+            if (j != i && servo_links[j] == i) {
+                own[i] = own[i] * servo_matrix[j];
             }
         }
-    };
+    }
 
-    // Determine motion mesh linkages
+    // Mesh linkages: a mesh is carried by the motion of each mesh above it,
+    // the top of the chain outermost.
     for (int i = 0; i < num_motion; ++i) {
         int link = mesh_links[i];
         int nesting = num_motion;
@@ -408,19 +412,31 @@ void DmxServo3d::ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion
                 link = mesh_links[link];
                 nesting--; // prevents circular loops from hanging things up
             }
-            // multiply motion matrix based on list in reverse order
             while (!link_list.empty()) {
                 link = link_list.back();
                 link_list.pop_back();
-                applyMeshServos(motion_matrix[i], link);
+                carried[i] = carried[i] * MeshMotion(link, own[link]);
             }
         }
     }
+}
 
-    // add motion based on servo mapping
-    for (int i = 0; i < (int)servos.size(); ++i) {
-        applyMeshServos(motion_matrix[i], i);
+glm::mat4 DmxServo3d::MeshMotion(int mesh, const glm::mat4& own) const
+{
+    if (mesh < 0 || mesh >= (int)motion_meshs.size()) {
+        return glm::mat4(1.0f);
     }
+    // Mesh::Draw applies the motion after the mesh offset and before its own
+    // rotation/scale, around the servo pivot when rotating.
+    glm::mat4 Identity(1.0f);
+    const Mesh* m = motion_meshs[mesh].get();
+    glm::mat4 motion = own;
+    if (mesh < (int)servos.size() && servos[mesh]->IsRotate()) {
+        glm::vec3 pivot(servos[mesh]->GetPivotOffsetX(), servos[mesh]->GetPivotOffsetY(), servos[mesh]->GetPivotOffsetZ());
+        motion = glm::translate(Identity, pivot) * motion * glm::translate(Identity, -pivot);
+    }
+    glm::vec3 offset(m->GetOffsetX(), m->GetOffsetY(), m->GetOffsetZ());
+    return glm::translate(Identity, offset) * motion * glm::translate(Identity, -offset);
 }
 
 std::vector<std::string> DmxServo3d::GetMotionParts() const
@@ -438,7 +454,6 @@ bool DmxServo3d::GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) co
         return false;
     }
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
-    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
     for (int i = 0; i < (int)servos.size(); ++i) {
         if (servos[i]->GetChannel() > 0) {
             servo_pos[i] = servos[i]->GetPositionConst(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
@@ -448,21 +463,10 @@ bool DmxServo3d::GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) co
             }
         }
     }
-    ComputeMotionMatrices(servo_pos, motion_matrix);
-
-    // Mesh::Draw applies the motion after the mesh offset and before its own
-    // rotation/scale. It pivots only when DrawModel passes rotation=true,
-    // which requires Show Pivot as well.
-    const Mesh* mesh = motion_meshs[index].get();
-    const Servo* servo = servos[index].get();
-    glm::mat4 Identity(1.0f);
-    glm::vec3 offset(mesh->GetOffsetX(), mesh->GetOffsetY(), mesh->GetOffsetZ());
-    glm::mat4 m = motion_matrix[index];
-    if (servo->IsRotate() && show_pivot) {
-        glm::vec3 pivot(servo->GetPivotOffsetX(), servo->GetPivotOffsetY(), servo->GetPivotOffsetZ());
-        m = glm::translate(Identity, pivot) * m * glm::translate(Identity, -pivot);
-    }
-    motion = glm::translate(Identity, offset) * m * glm::translate(Identity, -offset);
+    glm::mat4 own[SUPPORTED_SERVOS];
+    glm::mat4 carried[SUPPORTED_SERVOS];
+    ComputeMotionMatrices(servo_pos, own, carried);
+    motion = carried[index] * MeshMotion(index, own[index]);
     return true;
 }
 
@@ -476,7 +480,8 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
 
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
     glm::mat4 Identity = glm::mat4(1.0f);
-    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
+    glm::mat4 own[SUPPORTED_SERVOS];
+    glm::mat4 carried[SUPPORTED_SERVOS];
 
     // Draw Static Meshs
     for (int i = 0; i < num_static; ++i) {
@@ -493,12 +498,12 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
             }
         }
     }
-    ComputeMotionMatrices(servo_pos, motion_matrix);
+    ComputeMotionMatrices(servo_pos, own, carried);
 
     // Draw Motion Meshs
     for (int i = 0; i < num_motion; ++i) {
-        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, motion_matrix[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
-                              servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate() && show_pivot, !active);
+        motion_meshs[i]->Draw(this, preview, sprogram, tprogram, carried[i], own[i], i < num_static ? !static_meshs[i]->GetExists(this, ctx) : false,
+                              servos[i]->GetPivotOffsetX(), servos[i]->GetPivotOffsetY(), servos[i]->GetPivotOffsetZ(), servos[i]->IsRotate(), !active && show_pivot);
     }
 }
 

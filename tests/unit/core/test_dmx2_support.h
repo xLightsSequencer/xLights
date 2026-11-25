@@ -85,6 +85,7 @@ struct RangeDraw {
     const void* acc;
     int start;
     int count;
+    glm::mat4 matrix{ 1.0f };
 };
 
 struct TextureDraw {
@@ -152,7 +153,7 @@ struct FakeContext : xlGraphicsContext {
     xlGraphicsContext* drawTriangles(xlVertexAccumulator* a, const xlColor&, int s, int c) override { triangles.push_back({ a, s, c }); return this; }
     xlGraphicsContext* drawTriangleStrip(xlVertexAccumulator*, const xlColor&, int, int) override { return this; }
     xlGraphicsContext* drawPoints(xlVertexAccumulator*, const xlColor&, float, bool, int, int) override { return this; }
-    xlGraphicsContext* drawLines(xlVertexColorAccumulator* a, int s, int c) override { lines.push_back({ a, s, c }); return this; }
+    xlGraphicsContext* drawLines(xlVertexColorAccumulator* a, int s, int c) override { lines.push_back({ a, s, c, lastApplied }); return this; }
     xlGraphicsContext* drawLineStrip(xlVertexColorAccumulator*, int, int) override { return this; }
     xlGraphicsContext* drawTriangles(xlVertexColorAccumulator* a, int s, int c) override { triangles.push_back({ a, s, c }); return this; }
     xlGraphicsContext* drawTriangleStrip(xlVertexColorAccumulator*, int, int) override { return this; }
