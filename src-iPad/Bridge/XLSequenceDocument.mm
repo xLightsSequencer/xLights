@@ -121,6 +121,7 @@
 #include "outputs/ZCPP.h"
 #include "controllers/Pixlite16.h"
 #include "controllers/WLED.h"
+#include "controllers/JBoards.h"
 #include "controllers/BaseController.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ExportSettings.h"
@@ -18602,6 +18603,7 @@ public:
     Pixlite16::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
     WLED::PrepareDiscovery(discovery);
+    JBoards::PrepareDiscovery(discovery);
 
     discovery.Discover();
     FPP::FinishControllerSeeding(discovery, seedAddresses);
@@ -20056,6 +20058,7 @@ NSString* fppTypeString(FPP_TYPE t) {
     case FPP_TYPE::ESPIXELSTICK: return @"ESPixelStick";
     case FPP_TYPE::GENIUS:       return @"Genius";
     case FPP_TYPE::POWERDMX:     return @"PowerDMX";
+    case FPP_TYPE::JBOARDS:      return @"JBoards";
     }
     return @"FPP";
 }
