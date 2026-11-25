@@ -2472,7 +2472,7 @@ void ControllerModelDialog::ReloadModels()
     wxString modelFilter = TextCtrl_ModelFilter->GetValue().Lower();
     wxFilterQuery const modelFilterQuery(TextCtrl_ModelFilter->GetValue());
     for (const auto& it : *_mm) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive() && it.second->GetLayoutGroup() != "Unassigned") {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->IsActive()) {
             if (_cud->GetControllerPortModel(it.second->GetName(), 0) == nullptr &&
                 ((_autoLayout && !CheckBox_HideOtherControllerModels->GetValue()) || // hide models on other controllers not set
                     ((_autoLayout && CheckBox_HideOtherControllerModels->GetValue() && (it.second->GetController() == nullptr || _controller->GetName() == it.second->GetControllerName() || it.second->GetControllerName() == "" || it.second->GetControllerName() == NO_CONTROLLER || _controller->ContainsChannels(it.second->GetFirstChannel() + 1, it.second->GetLastChannel() + 1))) ||
