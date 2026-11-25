@@ -238,7 +238,7 @@ void PolyPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const
     z = v.z;
 }
 void PolyPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
-    ctx->SetModelMatrix(main_matrix);
+    ctx->SetModelMatrix(hasPreviewMotion ? previewMotion * main_matrix : main_matrix);
 }
 
 bool PolyPointScreenLocation::IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const

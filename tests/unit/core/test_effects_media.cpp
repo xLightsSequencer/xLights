@@ -1347,7 +1347,7 @@ TEST_CASE("Servo split hands the midpoint to both halves", "[effects][media]") {
 TEST_CASE("Servo draws its position into the background display list", "[effects][media]") {
     Fx f(Dmx("G", "DmxGeneral", "DmxChannelCount=\"2\""));
     Effect* e = f.Add("Servo", "E_TEXTCTRL_Servo=50.0,E_TEXTCTRL_EndValue=50.0", { { "E_CHOICE_Channel", f.model->GetNodeName(0) } });
-    const bool was = Effect::IsBackgroundDisplayListEnabled();
+    const bool was = Effect::AreBackgroundDisplayListsEnabled();
     Effect::EnableBackgroundDisplayLists(true);
     f.RunDmx(e, Range(0, 19));
     Effect::EnableBackgroundDisplayLists(was);

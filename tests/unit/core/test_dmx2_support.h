@@ -91,6 +91,7 @@ struct TextureDraw {
     const xlTexture* texture;
     int alpha;
     glm::mat4 matrix;
+    int brightness = 100;
 };
 
 struct FakeContext : xlGraphicsContext {
@@ -129,13 +130,19 @@ struct FakeContext : xlGraphicsContext {
     }
     xlGraphicsContext* Translate(float, float, float) override { return this; }
     xlGraphicsContext* Rotate(float, float, float, float) override { return this; }
+    std::vector<glm::mat4> applied;
+    std::vector<glm::mat4> modelMatrices;
     xlGraphicsContext* ApplyMatrix(const glm::mat4& m) override {
         lastApplied = m;
+        applied.push_back(m);
         return this;
     }
     xlGraphicsContext* Scale(float, float, float) override { return this; }
     xlGraphicsContext* SetCamera(const glm::mat4&) override { return this; }
-    xlGraphicsContext* SetModelMatrix(const glm::mat4&) override { return this; }
+    xlGraphicsContext* SetModelMatrix(const glm::mat4& m) override {
+        modelMatrices.push_back(m);
+        return this;
+    }
     xlGraphicsContext* ScaleViewMatrix(float, float, float) override { return this; }
     xlGraphicsContext* TranslateViewMatrix(float, float, float) override { return this; }
     xlGraphicsContext* enableBlending(bool) override { return this; }
@@ -155,8 +162,8 @@ struct FakeContext : xlGraphicsContext {
     xlGraphicsContext* drawTriangles(xlVertexIndexedColorAccumulator*, int, int) override { return this; }
     xlGraphicsContext* drawTriangleStrip(xlVertexIndexedColorAccumulator*, int, int) override { return this; }
     xlGraphicsContext* drawPoints(xlVertexIndexedColorAccumulator*, float, bool, int, int) override { return this; }
-    xlGraphicsContext* drawTexture(xlTexture* t, float, float, float, float, float, float, float, float, bool, int, int alpha) override {
-        textures.push_back({ t, alpha, lastApplied });
+    xlGraphicsContext* drawTexture(xlTexture* t, float, float, float, float, float, float, float, float, bool, int brightness, int alpha) override {
+        textures.push_back({ t, alpha, lastApplied, brightness });
         return this;
     }
     xlGraphicsContext* drawTexture(xlVertexTextureAccumulator*, xlTexture*, const xlColor&, int, int) override { return this; }

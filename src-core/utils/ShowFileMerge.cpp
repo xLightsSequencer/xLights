@@ -1013,6 +1013,9 @@ void RewriteModelRefs(pugi::xml_node root, const std::map<std::string, std::stri
         if (pugi::xml_attribute a = model.attribute("ShadowModelFor")) {
             SetIfChanged(a, MapName(map, a.value()));
         }
+        if (pugi::xml_attribute a = model.attribute("MotionParent")) {
+            SetIfChanged(a, MapName(map, a.value()));
+        }
         if (pugi::xml_attribute a = model.attribute("ModelChain")) {
             std::string chain = a.value();
             if (chain.size() > 1 && chain[0] == '>') {

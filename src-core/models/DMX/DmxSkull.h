@@ -12,6 +12,8 @@
 
 #include "DmxModel.h"
 #include "Servo.h"
+#include <functional>
+
 #include "Mesh.h"
 
 class DmxSkull : public DmxModel
@@ -168,10 +170,17 @@ public:
     void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
     virtual std::vector<std::string> GenerateNodeNames() const override;
+
+    [[nodiscard]] std::vector<std::string> GetMotionParts() const override;
 protected:
     virtual void InitModel() override;
 
     float GetServoPos(Servo* _servo, bool active);
+    float GetServoPosConst(const Servo* _servo, bool active) const;
+    bool HasValidServoChannels() const;
+    void ComputeServoMatrices(bool active, const std::function<float(Servo*, bool)>& servoPos,
+                              glm::mat4& head_matrix, glm::mat4& jaw_matrix, glm::mat4& eye_matrix) const;
+    bool GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const override;
 
     virtual std::list<std::string> CheckModelSettings() override;
 

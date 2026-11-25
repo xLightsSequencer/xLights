@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include "render/ValueCurve.h"
 #include "../utils/string_utils.h"
 
@@ -302,6 +303,58 @@ void ServoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
         float pos = 1.0 - (position / 100.0);
         buffer.SetDisplayListVRect(effect, idx, x1, pos - 0.028, x2, pos + 0.028, xlYELLOW, xlYELLOW);
     }
+}
+
+int ServoEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
+                                      xlVertexColorAccumulator& bg, xlColor* colorMask, bool ramps) {
+    if (e->HasBackgroundDisplayList()) {
+        e->GetBackgroundDisplayList().addToAccumulator(x1, y1, x2 - x1, y2 - y1, bg);
+        return e->GetBackgroundDisplayList().iconSize;
+    }
+    // Nothing rendered yet (a sequence opened with an up to date fseq is not
+    // rendered), so draw the same line from the settings. A timing track
+    // driven servo is only known once it renders.
+    const SettingsMap& s = e->GetSettings();
+    if (!e->IsBackgroundDisplayListEnabled() || x2 <= x1 || s.GetBool("E_CHECKBOX_Timing_Track")) {
+        return 1;
+    }
+    std::unique_ptr<ValueCurve> vc;
+    const std::string& vcs = s.Get("E_VALUECURVE_Servo", xlEMPTY_STRING);
+    if (!vcs.empty()) {
+        vc = std::make_unique<ValueCurve>(vcs);
+        if (vc->IsActive()) {
+            vc->SetLimits(SERVO_MIN, SERVO_MAX);
+            vc->SetDivisor(SERVO_DIVISOR);
+        } else {
+            vc.reset();
+        }
+    }
+    const double startPos = s.Get("E_SLIDER_Servo", xlEMPTY_STRING).empty() ? s.GetDouble("E_TEXTCTRL_Servo", 0.0) : s.GetDouble("E_SLIDER_Servo", 0.0);
+    const double endPos = s.GetDouble("E_TEXTCTRL_EndValue", 0.0);
+    auto yAt = [&](float t) {
+        double position = vc ? vc->GetOutputValueAtDivided(t, e->GetStartTimeMS(), e->GetEndTimeMS())
+                             : startPos + (endPos - startPos) * t;
+        return 1.0 - position / 100.0;
+    };
+    constexpr double HALF = 0.028; // the rendered line's half height
+    const int segments = vc ? std::clamp((x2 - x1) / 4, 1, 200) : 1;
+    const float w = float(x2 - x1);
+    const float h = float(y2 - y1);
+    for (int i = 0; i < segments; ++i) {
+        const float t0 = float(i) / segments;
+        const float t1 = float(i + 1) / segments;
+        const float xa = x1 + w * t0;
+        const float xb = x1 + w * t1;
+        const double ya = yAt(t0);
+        const double yb = yAt(t1);
+        bg.AddVertex(xa, y1 + h * float(ya - HALF), xlYELLOW);
+        bg.AddVertex(xa, y1 + h * float(ya + HALF), xlYELLOW);
+        bg.AddVertex(xb, y1 + h * float(yb + HALF), xlYELLOW);
+        bg.AddVertex(xb, y1 + h * float(yb + HALF), xlYELLOW);
+        bg.AddVertex(xb, y1 + h * float(yb - HALF), xlYELLOW);
+        bg.AddVertex(xa, y1 + h * float(ya - HALF), xlYELLOW);
+    }
+    return 2;
 }
 
 int ServoEffect::GetPhonemeValue(RenderBuffer& buffer, SequenceElements* elements, const std::string& trackName) {

@@ -369,7 +369,14 @@ protected:
     std::vector<Model*> subModels;
     std::map<std::string, Model*> sortedSubModels;
     std::string _modelChain = "";
+    std::string _motionParent;
+    std::string _motionParentPart;
     [[nodiscard]] uint32_t ApplyLowDefinition(uint32_t val) const;
+
+    // Called next to PrepareToDraw by each DisplayModelOnWindow so the model's
+    // placement follows its motion parent while a sequence plays.
+    void PreparePreviewMotion(bool is_3d, bool allowSelected);
+    [[nodiscard]] bool GetMotionTransform(bool is_3d, glm::mat4& motion, int depth) const;
 
     FaceStateData faceInfo;
     FaceStateNodes faceInfoNodes;
@@ -421,6 +428,20 @@ public:
     void SetAliases(const std::list<std::string>& aliases);
 
     void SetModelChain(const std::string& modelChain);
+
+    // Motion parent: in the preview this model follows a moving part (a servo
+    // image or mesh, a skull's head or jaw) of another model. Layout shows the
+    // part's rest pose, so the model is laid out where it sits at rest.
+    void SetMotionParent(const std::string& model, const std::string& part);
+    [[nodiscard]] const std::string& GetMotionParent() const { return _motionParent; }
+    [[nodiscard]] const std::string& GetMotionParentPart() const { return _motionParentPart; }
+    // Names of the moving parts other models can follow.
+    [[nodiscard]] virtual std::vector<std::string> GetMotionParts() const { return {}; }
+    // World-space transform taking the part from its rest pose to where the
+    // current channel values put it.
+    [[nodiscard]] virtual bool GetPartMotion(const std::string& part, bool is_3d, glm::mat4& motion) const { return false; }
+    // Combined world-space transform from the whole motion parent chain.
+    [[nodiscard]] bool GetMotionTransform(bool is_3d, glm::mat4& motion) const { return GetMotionTransform(is_3d, motion, 0); }
     [[nodiscard]] std::string GetModelChain() const;
     [[nodiscard]] const std::vector<Model*>& GetSubModels() const {
         return subModels;

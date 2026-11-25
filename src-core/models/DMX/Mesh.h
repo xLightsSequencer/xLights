@@ -73,6 +73,7 @@ public:
     void SetRenderDepth(float d) { render_depth = d; }
 
     void SetRenderScaling(float s);
+    float GetRenderScaling() const { return rscale; }
     void SetMeshOnly(bool val) { mesh_only = val; }
     void SetBrightness(float bright) { brightness = bright; }
 

@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+#include <cmath>
 #include <spdlog/fmt/fmt.h>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -159,6 +161,7 @@ void DmxServo::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* c
         return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
     if (boundingBox) {
         boundingBox[0] = -0.5;
@@ -265,23 +268,67 @@ std::list<std::string> DmxServo::CheckModelSettings()
     return res;
 }
 
-void DmxServo::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* program, const xlColor* c, bool active)
+bool DmxServo::HasValidServoSetup() const
 {
-    // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
-        return;
+        return false;
     }
     if ((int)motion_images.size() < num_servos) {
-        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
-        return;
+        return false;
     }
     for (const auto& it : servos) {
         if (it->GetChannel() > (int)Nodes.size()) {
-            DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
-            return;
+            return false;
         }
+    }
+    return true;
+}
+
+std::vector<std::string> DmxServo::GetMotionParts() const
+{
+    std::vector<std::string> parts;
+    for (int i = 0; i < num_servos && i < (int)servos.size(); ++i) {
+        parts.push_back("Servo " + std::to_string(i + 1));
+    }
+    return parts;
+}
+
+bool DmxServo::GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const
+{
+    if (index < 0 || index >= (int)servos.size() || !HasValidServoSetup()) {
+        return false;
+    }
+    const Servo* servo = servos[index].get();
+    float servo_pos = 0.0f;
+    if (servo->GetChannel() > 0) {
+        servo_pos = servo->GetPositionConst(GetChannelValue(servo->GetChannel() - 1, servo->Is16Bit()));
+    }
+    glm::mat4 servoMatrix(1.0f);
+    servo->FillMotionMatrix(servo_pos, servoMatrix);
+
+    // DmxImage::Draw applies the motion inside the image's own transform,
+    // around the pivot when rotating.
+    const glm::mat4 image = motion_images[index]->GetBaseMatrix();
+    if (std::abs(glm::determinant(image)) < 1e-12f) {
+        return false;
+    }
+    if (servo->IsRotate()) {
+        glm::mat4 Identity(1.0f);
+        glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-servo->GetPivotOffsetX(), -servo->GetPivotOffsetY(), 0.0f));
+        glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(servo->GetPivotOffsetX(), servo->GetPivotOffsetY(), 0.0f));
+        servoMatrix = pivotBack * servoMatrix * pivotToZero;
+    }
+    motion = image * servoMatrix * glm::inverse(image);
+    return true;
+}
+
+void DmxServo::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* program, const xlColor* c, bool active)
+{
+    // crash protection
+    if (!HasValidServoSetup()) {
+        DmxModel::DrawInvalid(program, &(GetModelScreenLocation()), false, false);
+        return;
     }
 
     float servo_pos[SUPPORTED_SERVOS] = { 0.0f };

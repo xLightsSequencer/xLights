@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
+#include <cmath>
 #include <spdlog/fmt/fmt.h>
 
 #include <glm/mat4x4.hpp>
@@ -107,7 +109,26 @@ void DmxModel::InitModel()
     SetBufferSize(1, _dmxChannelCount);
 }
 
-int DmxModel::GetChannelValue(int channel, bool bits16)
+bool DmxModel::GetPartMotion(const std::string& part, bool is_3d, glm::mat4& motion) const
+{
+    const std::vector<std::string> parts = GetMotionParts();
+    auto it = std::find(parts.begin(), parts.end(), part);
+    if (it == parts.end()) {
+        return false;
+    }
+    glm::mat4 local;
+    if (!GetPartLocalMotion((int)(it - parts.begin()), is_3d, local)) {
+        return false;
+    }
+    const glm::mat4 world = screenLocation.GetModelViewMatrix(is_3d);
+    if (std::abs(glm::determinant(world)) < 1e-12f) {
+        return false;
+    }
+    motion = world * local * glm::inverse(world);
+    return true;
+}
+
+int DmxModel::GetChannelValue(int channel, bool bits16) const
 {
     xlColor color_angle;
     int lsb = 0;
@@ -136,7 +157,7 @@ int DmxModel::GetChannelValue(int channel, bool bits16)
 }
 
 // support for moving heads or devices where coarse and fine channels are not contiguous
-int DmxModel::GetChannelValue(int channel_coarse, int channel_fine)
+int DmxModel::GetChannelValue(int channel_coarse, int channel_fine) const
 {
     xlColor color_angle;
     int lsb = 0;

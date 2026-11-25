@@ -66,6 +66,7 @@ void DmxFloodlight::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsConte
     int w, h;
     preview->GetVirtualCanvasSize(w, h);
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
     if (boundingBox) {
         boundingBox[0] = -0.5;

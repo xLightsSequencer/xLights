@@ -823,6 +823,11 @@ bool Model::ModelRenamed(const std::string& oldName, const std::string& newName)
         changed = true;
     }
 
+    if (_motionParent == oldName) {
+        _motionParent = newName;
+        changed = true;
+    }
+
     for (size_t i = 0; i < stringStartChan.size() && i < _indivStartChannels.size(); ++i) {
         const std::string& isc = _indivStartChannels[i];
         if (isc.size() > 1 && (isc[0] == '@' || isc[0] == '<' || isc[0] == '>') && isc.find(':') != std::string::npos) {
@@ -3148,6 +3153,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
     ModelScreenLocation& screenLocation = GetModelScreenLocation();
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
 
     const std::string& cacheKey = allowSelected
                                       ? (is_3d ? LAYOUT_PREVIEW_CACHE_3D : LAYOUT_PREVIEW_CACHE_2D)
@@ -4698,6 +4704,58 @@ void Model::SetShadowModelFor(const std::string& shadowModelFor, bool applyLink)
             IncrementChangeCount();
             AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE | OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Model::SetShadowModelFor");
         }
+    }
+}
+
+void Model::SetMotionParent(const std::string& model, const std::string& part)
+{
+    if (model == name) {
+        return;
+    }
+    _motionParent = model;
+    _motionParentPart = model.empty() ? std::string() : part;
+}
+
+bool Model::GetMotionTransform(bool is_3d, glm::mat4& motion, int depth) const
+{
+    // a skull on an arm on a body is three levels; the cap also stops cycles
+    static constexpr int MAX_MOTION_DEPTH = 8;
+    if (_motionParent.empty() || depth >= MAX_MOTION_DEPTH) {
+        return false;
+    }
+    const Model* parent = GetModelManager().GetModel(_motionParent);
+    if (parent == nullptr || parent == this) {
+        return false;
+    }
+    glm::mat4 partMotion(1.0f);
+    bool moved = parent->GetPartMotion(_motionParentPart, is_3d, partMotion);
+    if (!moved) {
+        partMotion = glm::mat4(1.0f);
+    }
+    glm::mat4 ancestors;
+    if (parent->GetMotionTransform(is_3d, ancestors, depth + 1)) {
+        partMotion = ancestors * partMotion;
+        moved = true;
+    }
+    if (moved) {
+        motion = partMotion;
+    }
+    return moved;
+}
+
+void Model::PreparePreviewMotion(bool is_3d, bool allowSelected)
+{
+    // A submodel shares its parent's screen location, so it has to follow
+    // the parent's motion rather than clear it.
+    const Model* owner = this;
+    if (GetDisplayAs() == DisplayAsType::SubModel) {
+        owner = static_cast<const SubModel*>(this)->GetParent();
+    }
+    glm::mat4 motion;
+    if (!allowSelected && owner != nullptr && owner->GetMotionTransform(is_3d, motion)) {
+        GetModelScreenLocation().SetPreviewMotion(motion);
+    } else {
+        GetModelScreenLocation().ClearPreviewMotion();
     }
 }
 

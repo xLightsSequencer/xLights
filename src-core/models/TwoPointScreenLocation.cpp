@@ -89,7 +89,7 @@ void TwoPointScreenLocation::TranslatePoint(float &x, float &y, float &z) const 
     z = v.z;
 }
 void TwoPointScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
-    ctx->SetModelMatrix(matrix);
+    ctx->SetModelMatrix(hasPreviewMotion ? previewMotion * matrix : matrix);
 }
 
 

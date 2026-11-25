@@ -54,6 +54,8 @@
 static wxArrayString LAYOUT_GROUPS;
 static wxArrayString CONTROLLERS;
 static wxArrayString OTHERMODELLIST;
+static wxArrayString MOTIONPARENTLIST;
+static wxArrayString MOTIONPARTLIST;
 
 //--- Dialog adapter classes (moved from Model.cpp) ---
 
@@ -443,6 +445,36 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     }
 
     grid->Append(new wxEnumProperty("Shadow Model For", "ShadowModelFor", OTHERMODELLIST, wxArrayInt(), shadowModelFor));
+
+    int motionParent = 0;
+    MOTIONPARENTLIST.clear();
+    MOTIONPARENTLIST.Add("");
+    for (const auto& it : _model.GetModelManager()) {
+        if (it.first != _model.GetName() && !it.second->GetMotionParts().empty()) {
+            if (_model.GetMotionParent() == it.first) {
+                motionParent = MOTIONPARENTLIST.size();
+            }
+            MOTIONPARENTLIST.Add(it.first);
+        }
+    }
+    p = grid->Append(new wxEnumProperty("Motion Parent", "MotionParent", MOTIONPARENTLIST, wxArrayInt(), motionParent));
+    p->SetHelpString("Follow a moving part of a servo model in the preview. Lay this model out over the part at its rest position.");
+    MOTIONPARTLIST.clear();
+    if (motionParent > 0) {
+        Model* parent = _model.GetModelManager().GetModel(_model.GetMotionParent());
+        int motionPart = 0;
+        if (parent != nullptr) {
+            for (const auto& part : parent->GetMotionParts()) {
+                if (part == _model.GetMotionParentPart()) {
+                    motionPart = MOTIONPARTLIST.size();
+                }
+                MOTIONPARTLIST.Add(part);
+            }
+        }
+        if (!MOTIONPARTLIST.empty()) {
+            grid->Append(new wxEnumProperty("Motion Part", "MotionParentPart", MOTIONPARTLIST, wxArrayInt(), motionPart));
+        }
+    }
 
     int layout_group_number = 0;
     for (int grp = 0; grp < (int)LAYOUT_GROUPS.Count(); ++grp) {
@@ -1323,6 +1355,34 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
         _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID, "Model::OnPropertyGridChange::ShadowModelFor");
+        return 0;
+    } else if (event.GetPropertyName() == "MotionParent") {
+        int idx = event.GetValue().GetInteger();
+        if (idx >= 0 && idx < (int)MOTIONPARENTLIST.size()) {
+            const std::string newVal = MOTIONPARENTLIST[idx].ToStdString();
+            if (_model.GetMotionParent() != newVal) {
+                std::string part;
+                if (Model* parent = _model.GetModelManager().GetModel(newVal); parent != nullptr) {
+                    auto parts = parent->GetMotionParts();
+                    if (!parts.empty()) {
+                        part = parts.front();
+                    }
+                }
+                _model.SetMotionParent(newVal, part);
+                _model.IncrementChangeCount();
+            }
+        }
+        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                    OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "Model::OnPropertyGridChange::MotionParent");
+        return 0;
+    } else if (event.GetPropertyName() == "MotionParentPart") {
+        int idx = event.GetValue().GetInteger();
+        if (idx >= 0 && idx < (int)MOTIONPARTLIST.size()) {
+            _model.SetMotionParent(_model.GetMotionParent(), MOTIONPARTLIST[idx].ToStdString());
+            _model.IncrementChangeCount();
+        }
+        _model.AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "Model::OnPropertyGridChange::MotionParentPart");
         return 0;
     } else if (event.GetPropertyName() == "Controller") {
         if (_model.GetControllerName() != CONTROLLERS[event.GetValue().GetInteger()]) {

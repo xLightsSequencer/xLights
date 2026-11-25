@@ -60,11 +60,18 @@ public:
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
+    [[nodiscard]] std::vector<std::string> GetMotionParts() const override;
+
     void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void InitModel() override;
     void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *sprogram, xlGraphicsProgram *tprogram, bool active);
+    bool GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const override;
+    bool HasValidServoSetup() const;
+    // Fills motion_matrix[i] for each servo/mesh from servo positions,
+    // following the Servo Linkage and Mesh Linkage settings.
+    void ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion_matrix) const;
 
     float brightness = 100.0f;
 

@@ -4863,6 +4863,24 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         [shadowOptions addObject:[NSString stringWithUTF8String:otherName.c_str()]];
     }
 
+    // Motion Parent: follow a moving part of a servo model in the
+    // preview. Options are the models that report moving parts.
+    NSMutableArray<NSString*>* motionParentOptions = [NSMutableArray array];
+    [motionParentOptions addObject:@""];  // "(none)" sentinel
+    for (const auto& [otherName, other] : _context->GetModelManager().GetModels()) {
+        if (!other || other == m) continue;
+        if (other->GetMotionParts().empty()) continue;
+        [motionParentOptions addObject:[NSString stringWithUTF8String:otherName.c_str()]];
+    }
+    NSMutableArray<NSString*>* motionPartOptions = [NSMutableArray array];
+    if (!m->GetMotionParent().empty()) {
+        if (Model* parent = _context->GetModelManager().GetModel(m->GetMotionParent())) {
+            for (const auto& part : parent->GetMotionParts()) {
+                [motionPartOptions addObject:[NSString stringWithUTF8String:part.c_str()]];
+            }
+        }
+    }
+
     // J-20.2 — DisableUnusedProperties parity. Each model type's
     // adapter on the desktop disables specific property-grid
     // entries that don't apply. iPad surfaces a `disabledKeys`
@@ -5110,6 +5128,10 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         @"lowDefinitionFactor":   @(lowDefFactor),
         @"shadowModelFor":        shadowSelection,
         @"shadowModelOptions":    shadowOptions,
+        @"motionParent":          [NSString stringWithUTF8String:m->GetMotionParent().c_str()],
+        @"motionParentOptions":   motionParentOptions,
+        @"motionParentPart":      [NSString stringWithUTF8String:m->GetMotionParentPart().c_str()],
+        @"motionParentPartOptions": motionPartOptions,
         @"disabledKeys":          disabledKeys,
         @"startChannel":         @((unsigned long long)m->GetFirstChannel()),
         @"endChannel":           @((unsigned long long)m->GetLastChannel()),
@@ -5345,6 +5367,27 @@ static NSArray<NSDictionary*>* SerialPortChoices(const ControllerCaps* caps, int
         std::string newShadow = s.UTF8String;
         if (newShadow != m->GetShadowModelFor()) {
             m->SetShadowModelFor(newShadow); changed = YES;
+        }
+    } else if (keyStr == "motionParent") {
+        NSString* s = asString(&typeOk); if (!typeOk) return NO;
+        std::string newParent = s.UTF8String;
+        if (newParent != m->GetMotionParent()) {
+            std::string part;
+            if (Model* parent = _context->GetModelManager().GetModel(newParent)) {
+                auto parts = parent->GetMotionParts();
+                if (!parts.empty()) part = parts.front();
+            }
+            m->SetMotionParent(newParent, part);
+            m->IncrementChangeCount();
+            changed = YES;
+        }
+    } else if (keyStr == "motionParentPart") {
+        NSString* s = asString(&typeOk); if (!typeOk) return NO;
+        std::string newPart = s.UTF8String;
+        if (newPart != m->GetMotionParentPart()) {
+            m->SetMotionParent(m->GetMotionParent(), newPart);
+            m->IncrementChangeCount();
+            changed = YES;
         }
     } else if (keyStr == "controllerSelection") {
         // J-19 — picker writes back as Use Start Channel ("") /
@@ -7013,6 +7056,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
 
     // Pass 1 — models. A name already in use is imported under a
     // generated name rather than overwriting what is here.
+    std::map<std::string, std::string> renamedModels;
     if (pugi::xml_node models = root.child("models")) {
         for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
             std::string name = m.attribute("name").as_string();
@@ -7031,6 +7075,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
             LayoutObjectId::StripFromXml(m);
             if (mm.createAndAddModel(m, pw, ph) != nullptr) {
                 ++modelCount;
+                renamedModels[name] = newName;
                 // There is no created-model set: SaveLayoutChanges
                 // appends a <model> whose node it can't find, so the
                 // dirty mark is what carries a new one to disk.
@@ -7038,6 +7083,7 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
             }
         }
     }
+    mm.RemapMotionParents(renamedModels);
 
     // Pass 2 — groups. A member neither present here nor part of this
     // import is dropped from the membership list (a member group later
@@ -14339,7 +14385,6 @@ static int xpmSizeIndexForDesired(int desired) {
     if (effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return 1;
     Effect* e = layer->GetEffect(effectIndex);
     if (!e) return 1;
-    if (e->GetPaletteSize() == 0) return 1;
 
     XLGridMetalBridge* b = (XLGridMetalBridge*)bridge;
     auto* accPtr = (xlVertexColorAccumulator*)[b effectBackgroundAccumulator];
@@ -14347,6 +14392,7 @@ static int xpmSizeIndexForDesired(int desired) {
 
     RenderableEffect* ef = _context->GetEffectManager()[e->GetEffectIndex()];
     if (!ef) return 1;
+    if (e->GetPaletteSize() == 0 && ef->BackgroundNeedsPalette()) return 1;
 
     // Mirror EffectsGrid::DrawEffectBackground (EffectsGrid.cpp:6572):
     // channel-block strands get the strand's node mask; single-color /

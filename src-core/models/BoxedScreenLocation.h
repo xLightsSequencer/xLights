@@ -28,6 +28,8 @@ public:
     virtual void PrepareToDraw(bool is_3d, bool allow_selected) const override;
     virtual void TranslatePoint(float &x, float &y, float &z) const override;
     virtual void ApplyModelViewMatrices(xlGraphicsContext *ctx) const override;
+    // The matrix ApplyModelViewMatrices applies, without any preview motion.
+    glm::mat4 GetModelViewMatrix(bool is_3d) const;
 
     virtual bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;

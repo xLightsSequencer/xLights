@@ -129,6 +129,7 @@ void LabelModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext 
                                       float *boundingBox)
 {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     GetModelScreenLocation().UpdateBoundingBox(Nodes);
 
     if (!_labelText.empty()) {

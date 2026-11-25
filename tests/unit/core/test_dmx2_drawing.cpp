@@ -74,13 +74,13 @@ namespace {
 // Reaches the protected channel readers through a derived-class member pointer.
 struct ChannelAccess : DmxModel {
     static int Coarse8(DmxModel* m, int ch) {
-        return (m->*static_cast<int (DmxModel::*)(int, bool)>(&ChannelAccess::GetChannelValue))(ch, false);
+        return (m->*static_cast<int (DmxModel::*)(int, bool) const>(&ChannelAccess::GetChannelValue))(ch, false);
     }
     static int Coarse16(DmxModel* m, int ch) {
-        return (m->*static_cast<int (DmxModel::*)(int, bool)>(&ChannelAccess::GetChannelValue))(ch, true);
+        return (m->*static_cast<int (DmxModel::*)(int, bool) const>(&ChannelAccess::GetChannelValue))(ch, true);
     }
     static int CoarseFine(DmxModel* m, int coarse, int fine) {
-        return (m->*static_cast<int (DmxModel::*)(int, int)>(&ChannelAccess::GetChannelValue))(coarse, fine);
+        return (m->*static_cast<int (DmxModel::*)(int, int) const>(&ChannelAccess::GetChannelValue))(coarse, fine);
     }
 };
 } // namespace

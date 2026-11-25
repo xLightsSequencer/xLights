@@ -64,7 +64,7 @@ bool Servo::IsRotate() const {
             servo_style_val == SERVO_STYLE_ROTATEZ);
 }
 
-float Servo::GetPosition(int channel_value) {
+int Servo::ClampChannelValue(int channel_value) const {
     if (channel_value == 0) {
         channel_value = lastValue;
     }
@@ -74,11 +74,24 @@ float Servo::GetPosition(int channel_value) {
     if (channel_value > max_limit) {
         channel_value = max_limit;
     }
-    lastValue = channel_value;
+    return channel_value;
+}
+
+float Servo::PositionForValue(int channel_value) const {
     return ((1.0 - ((channel_value - min_limit) / (float)(max_limit - min_limit))) * range_of_motion - range_of_motion);
 }
 
-void Servo::FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix) {
+float Servo::GetPosition(int channel_value) {
+    channel_value = ClampChannelValue(channel_value);
+    lastValue = channel_value;
+    return PositionForValue(channel_value);
+}
+
+float Servo::GetPositionConst(int channel_value) const {
+    return PositionForValue(ClampChannelValue(channel_value));
+}
+
+void Servo::FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix) const {
     glm::vec3 scale = base->GetBaseObjectScreenLocation().GetScaleMatrix();
     
     glm::mat4 Identity = glm::mat4(1.0f);

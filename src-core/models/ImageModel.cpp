@@ -259,6 +259,7 @@ void ImageModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext 
                                       bool highlightFirst, int highlightpixel,
                                       float *boundingBox) {
     GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
 
     int w, h;
     preview->GetVirtualCanvasSize(w, h);

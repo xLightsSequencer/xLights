@@ -64,11 +64,17 @@ class DmxModel : public ModelWithScreenLocation<BoxedScreenLocation>
         virtual void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const;
         void UpdateChannelCount(int num_channels, bool do_work);
 
+        [[nodiscard]] bool GetPartMotion(const std::string& part, bool is_3d, glm::mat4& motion) const override;
+
     protected:
         virtual void InitModel() override;
 
-        virtual int GetChannelValue( int channel, bool bits16);
-        int GetChannelValue(int channel_coarse, int channel_fine);
+        // Motion of moving part `index` (an entry of GetMotionParts()) in
+        // model-local coordinates, from the current channel values.
+        virtual bool GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const { return false; }
+
+        virtual int GetChannelValue( int channel, bool bits16) const;
+        int GetChannelValue(int channel_coarse, int channel_fine) const;
         void SetNodeNames(const std::string& default_names, bool force = false);
 
         int _dmxChannelCount = 1;

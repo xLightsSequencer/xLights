@@ -7663,13 +7663,13 @@ void EffectsGrid::DrawPlayMarker(xlGraphicsContext* ctx) const {
 int EffectsGrid::DrawEffectBackground(const Row_Information_Struct* ri, const Effect* e,
                                       int x1, int y1, int x2, int y2,
                                       xlVertexColorAccumulator* backgrounds) const {
-    if (e->GetPaletteSize() == 0) {
+    RenderableEffect* ef = xlights->GetEffectManager()[e->GetEffectIndex()];
+    if (e->GetPaletteSize() == 0 && (ef == nullptr || ef->BackgroundNeedsPalette())) {
         // if there are no colors selected, none of the "backgrounds" make sense.  Don't draw
         // the background and instead make sure the icon is displayed to the user knows they
         // need to make some decisions about the colors to be used.
         return 1;
     }
-    RenderableEffect* ef = xlights->GetEffectManager()[e->GetEffectIndex()];
 
     xlColor colorMask = xlColor::NilColor();
     Model* m = xlights->GetModel(ri->element->GetModelName());

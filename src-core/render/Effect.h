@@ -45,6 +45,7 @@ class EffectSymbol;
 class Effect
 {
     static bool backgroundDisplayListsEnabled;
+    bool mNoBackgroundDisplayList = false;
     int mID = 0;
     SeqObjectId mUid = SeqIds::Next();
     short mEffectIndex = -1;
@@ -205,7 +206,7 @@ public:
     xlDisplayList &GetBackgroundDisplayList() { return background; }
     const xlDisplayList &GetBackgroundDisplayList() const { return background; }
     bool HasBackgroundDisplayList() const {
-        if (backgroundDisplayListsEnabled) {
+        if (IsBackgroundDisplayListEnabled()) {
             std::lock_guard<std::recursive_mutex> lock(background.lock);
             return !background.empty();
         }
@@ -226,8 +227,12 @@ public:
     void PurgeCache(bool deleteCachefile = false);
     
     
+    // The grid preference: on or off for every effect.
     static void EnableBackgroundDisplayLists(bool b) { backgroundDisplayListsEnabled = b; }
-    static bool IsBackgroundDisplayListEnabled() { return backgroundDisplayListsEnabled; }
+    static bool AreBackgroundDisplayListsEnabled() { return backgroundDisplayListsEnabled; }
+    // Turns it off for this effect alone (a render temporary that is deleted after the frame).
+    void DisableBackgroundDisplayList() { mNoBackgroundDisplayList = true; }
+    bool IsBackgroundDisplayListEnabled() const { return backgroundDisplayListsEnabled && !mNoBackgroundDisplayList; }
 };
 
 bool operator<(const Effect &e1, const Effect &e2);

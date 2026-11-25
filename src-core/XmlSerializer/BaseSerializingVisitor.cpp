@@ -209,6 +209,10 @@ void BaseSerializingVisitor::AddCommonModelAttributes(const Model& model, AttrCo
     if (!model.GetShadowModelFor().empty()) {
         attrs.Add(XmlNodeKeys::ShadowModelAttribute, model.GetShadowModelFor());
     }
+    if (!model.GetMotionParent().empty()) {
+        attrs.Add(XmlNodeKeys::MotionParentAttribute, model.GetMotionParent());
+        attrs.Add(XmlNodeKeys::MotionParentPartAttribute, model.GetMotionParentPart());
+    }
 
     // Individual Start Channels
     if (model.HasIndividualStartChannels()) {

@@ -5188,6 +5188,14 @@ private struct LayoutEditorPropertiesView: View {
                     row("Low Def Factor") { lowDefFactorField }
                 }
                 row("Shadow Model For") { shadowModelPicker }
+                row("Motion Parent") {
+                    stringMenuPicker(key: "motionParent", optionsKey: "motionParentOptions")
+                }
+                if !(((summary["motionParent"] as? String) ?? "").isEmpty) {
+                    row("Motion Part") {
+                        stringMenuPicker(key: "motionParentPart", optionsKey: "motionParentPartOptions")
+                    }
+                }
                 let hasMulti = (summary["hasMultipleStrings"] as? Bool) ?? false
                 let hasIndiv = (summary["hasIndividualStartChannels"] as? Bool) ?? false
                 if hasMulti {
@@ -6194,6 +6202,34 @@ private struct LayoutEditorPropertiesView: View {
             ForEach(opts, id: \.self) { name in
                 Button {
                     commit("shadowModelFor", name as NSString)
+                } label: {
+                    HStack {
+                        Text(name.isEmpty ? "(none)" : name)
+                        if name == current {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            Text(current.isEmpty ? "(none)" : current)
+                .truncationMode(.middle)
+                .frame(maxWidth: 180, alignment: .trailing)
+        }
+        .menuStyle(.button)
+        .controlSize(.mini)
+    }
+
+    /// Menu over a list of strings from the summary; "" reads as "(none)".
+    /// Used for Motion Parent and its part.
+    private func stringMenuPicker(key: String, optionsKey: String) -> some View {
+        let opts = (summary[optionsKey] as? [String]) ?? [""]
+        let current = summary[key] as? String ?? ""
+        return Menu {
+            ForEach(opts, id: \.self) { name in
+                Button {
+                    commit(key, name as NSString)
                 } label: {
                     HStack {
                         Text(name.isEmpty ? "(none)" : name)

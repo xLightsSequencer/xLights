@@ -461,6 +461,18 @@ glm::vec3 Apply(const glm::mat4& m, glm::vec3 p) {
 }
 } // namespace
 
+TEST_CASE("Servo model images are drawn at the model brightness", "[dmx2]") {
+    ImageFiles img;
+    Show s;
+    auto* m = As<DmxServo>(s.Add(Dmx("DmxServo", "DmxChannelCount=\"1\" NumServos=\"1\" Bits16=\"0\" Brightness=\"40\"",
+        "<Servo1 Channel=\"1\" MinLimit=\"0\" MaxLimit=\"255\" RangeOfMotion=\"100\" ServoStyle=\"Translate X\"/>" + img.Img("StaticImage1") + img.Img("MotionImage1"))));
+    FakePreview p;
+    DrawEffect(m, p);
+    REQUIRE(p.ctx.textures.size() == 2);
+    CHECK(p.ctx.textures[0].brightness == 40);
+    CHECK(p.ctx.textures[1].brightness == 40);
+}
+
 TEST_CASE("Servo model translates its motion image by the servo value", "[dmx2]") {
     ImageFiles img;
     Show s;

@@ -28,6 +28,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  session carries on (local network and SharePlay)
     -enh (dkulp)                 Live collaboration on Windows and Linux: host and join local-network sessions with
                                  Macs and iPads; join by address where the network can't be browsed
+    -enh (dkulp)                 Models can follow a moving part of a DMX Servo, Servo 3D or Skull model in the
+                                 house preview (Motion Parent), so pixels on a waving arm or a pop-up skull move with it.
+                                 A whole prop (servo plus its pixels) can be shared as one multi-model .xmodel
+    -bug (dkulp)                 After a Duplicate effect rendered, effect backgrounds in the grid (such as the Servo
+                                 position line) stopped appearing for every effect until xLights was restarted
+    -bug (dkulp)                 The Servo effect's position line now shows in the grid before the sequence is rendered,
+                                 and also when the effect has no palette colors selected
+    -bug (dkulp)                 DMX Servo model images ignored the model's Brightness setting in the preview
 
 2026.21  November 24, 2026
 

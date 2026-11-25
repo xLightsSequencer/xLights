@@ -113,6 +113,8 @@ namespace XmlNodeKeys {
     constexpr auto NodeNamesAttribute       = "NodeNames";
     constexpr auto StrandNamesAttribute     = "StrandNames";
     constexpr auto ShadowModelAttribute     = "ShadowModelFor";
+    constexpr auto MotionParentAttribute    = "MotionParent";
+    constexpr auto MotionParentPartAttribute = "MotionParentPart";
     constexpr auto ControllerAttribute      = "Controller";
     constexpr auto VisibilityAttribute      = "Visibility";
     constexpr auto ShowLabelAttribute       = "ShowLabel";

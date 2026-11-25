@@ -6063,7 +6063,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     FinalizeModel();
 }
 
-static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr, std::vector<Model*>* additionalModelObjects = nullptr)
+static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr, std::vector<Model*>* additionalModelObjects = nullptr, std::map<std::string, Model*>* modelsByFileName = nullptr)
 {
     pugi::xml_document doc;
     bool docLoaded = false;
@@ -6343,8 +6343,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                 pugi::xml_node primaryNode = root.first_child();
                 while (primaryNode && primaryNode.type() != pugi::node_element)
                     primaryNode = primaryNode.next_sibling();
-                if (primaryNode)
+                if (primaryNode) {
                     applyWorldPos(model, primaryNode);
+                    if (modelsByFileName != nullptr)
+                        (*modelsByFileName)[primaryNode.attribute("name").as_string()] = model;
+                }
 
                 for (pugi::xml_node child = primaryNode ? primaryNode.next_sibling() : pugi::xml_node(); child; child = child.next_sibling()) {
                     if (child.type() != pugi::node_element) continue;
@@ -6368,6 +6371,8 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     }
                     applyWorldPos(extraModel, child);
                     additionalModelObjects->push_back(extraModel);
+                    if (modelsByFileName != nullptr)
+                        modelsByFileName->emplace(child.attribute("name").as_string(), extraModel);
                 }
             }
         }
@@ -6508,6 +6513,7 @@ void LayoutPanel::FinalizeModel()
         auto b = selectedButton;
         std::vector<DownloadedModelInfo> additionalModels;
         std::vector<Model*> additionalModelObjects;
+        std::map<std::string, Model*> modelsByFileName;
         glm::vec3 firstModelPos(0.0f);
         glm::vec3 multiModelAnchor(0.0f);
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
@@ -6549,7 +6555,7 @@ void LayoutPanel::FinalizeModel()
             int heightmm = -1;
             int depthmm = -1;
 
-            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects);
+            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects, &modelsByFileName);
 
             if (highlightWasNewModel) {
                 highlightedBaseObject = _newModel;
@@ -6736,6 +6742,11 @@ void LayoutPanel::FinalizeModel()
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
                 xlights->AllModels.AddModel(extraModel);
             }
+            std::map<std::string, std::string> renames;
+            for (const auto& [fileName, m] : modelsByFileName) {
+                renames[fileName] = m->GetName();
+            }
+            xlights->AllModels.RemapMotionParents(renames);
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
 
@@ -12356,6 +12367,7 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
     };
 
     //add models first
+    std::map<std::string, std::string> renamedModels;
     for (auto const& it2 : models)
     {
         if (it2->GetKind() == ImpItemKind::Model)
@@ -12377,9 +12389,11 @@ std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> mod
                 continue;
             }
             if (firstImported.empty()) firstImported = newName;
+            renamedModels[it2->GetName().ToStdString()] = newName;
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
+    xlights->AllModels.RemapMotionParents(renamedModels);
 
     //add model groups second, skip adding duplicates, just add models to existing group
     for (auto const& it2 : models)

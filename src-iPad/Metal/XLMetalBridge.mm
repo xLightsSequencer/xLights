@@ -1719,6 +1719,7 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     if (!rctx || !rctx->HasModelManager()) return out;
     rctx->AbortRender(5000);
     auto& mgr = rctx->GetModelManager();
+    std::map<std::string, std::string> renames;
 
     for (NSString* n in names) {
         if (n.length == 0) continue;
@@ -1757,9 +1758,11 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         dup->Lock(false);
         dup->AddOffset(50.0, 50.0, 0.0);
         mgr.AddModel(dup);
+        renames[src->GetName()] = newName;
         rctx->MarkLayoutModelDirty(newName);
         [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
     }
+    mgr.RemapMotionParents(renames);
     return out;
 }
 
@@ -1814,8 +1817,9 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         modelNodes.push_back(root);
     }
 
+    std::map<std::string, std::string> renames;
     for (pugi::xml_node modelNode : modelNodes) {
-        const char* origName = modelNode.attribute("name").as_string("Model");
+        const std::string origName = modelNode.attribute("name").as_string("Model");
         const std::string newName = mgr.GenerateModelName(origName);
         if (modelNode.attribute("name")) modelNode.remove_attribute("name");
         modelNode.append_attribute("name") = newName.c_str();
@@ -1836,9 +1840,11 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         paste->SetLayoutGroup(layoutGroup);
         paste->AddOffset(50.0, 50.0, 0.0);
         mgr.AddModel(paste);
+        renames[origName] = newName;
         rctx->MarkLayoutModelDirty(newName);
         [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
     }
+    mgr.RemapMotionParents(renames);
     if (out.count > 0) mgr.RecalcStartChannels();
     return out;
 }
@@ -3005,6 +3011,10 @@ public:
         pugi::xml_node primaryNode = root.first_child();
         while (primaryNode && primaryNode.type() != pugi::node_element)
             primaryNode = primaryNode.next_sibling();
+        std::map<std::string, std::string> renames;
+        if (primaryNode) {
+            renames[primaryNode.attribute("name").as_string()] = imported->GetName();
+        }
 
         const glm::vec3 primaryNew(imported->GetHcenterPos(),
                                    imported->GetVcenterPos(),
@@ -3044,10 +3054,15 @@ public:
             // FinalizeModel:4982.
             std::string unique = rctx->GetModelManager().GenerateModelName(extra->GetName());
             extra->SetName(unique);
+            renames.emplace(child.attribute("name").as_string(), unique);
 
             rctx->GetModelManager().AddModel(extra);
             rctx->MarkLayoutModelDirty(extra->GetName());
             [names addObject:[NSString stringWithUTF8String:extra->GetName().c_str()]];
+        }
+        rctx->GetModelManager().RemapMotionParents(renames);
+        for (const auto& [from, to] : renames) {
+            rctx->MarkLayoutModelDirty(to);
         }
     }
 

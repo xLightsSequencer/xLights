@@ -231,6 +231,7 @@ void DmxServo3d::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext*
         return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
     if (boundingBox) {
         boundingBox[0] = -0.5;
@@ -354,40 +355,26 @@ std::list<std::string> DmxServo3d::CheckModelSettings()
     return res;
 }
 
-void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+bool DmxServo3d::HasValidServoSetup() const
 {
-    // crash protection
     int min_channels = num_servos * (_16bit ? 2 : 1);
     if (min_channels > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
+        return false;
     }
     for (const auto& it : servos) {
         if (it->GetChannel() > (int)Nodes.size()) {
-            DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-            return;
+            return false;
         }
     }
+    return true;
+}
 
-    float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
+void DmxServo3d::ComputeMotionMatrices(const float* servo_pos, glm::mat4* motion_matrix) const
+{
     glm::mat4 Identity = glm::mat4(1.0f);
     glm::mat4 servo_matrix[SUPPORTED_SERVOS];
-    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
 
-    // Draw Static Meshs
-    for (int i = 0; i < num_static; ++i) {
-        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
-    }
-
-    // Get servo positions and fill motion matrices
     for (int i = 0; i < (int)servos.size(); ++i) {
-        if (servos[i]->GetChannel() > 0 && active) {
-            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
-            if (servos[i]->IsTranslate()) {
-                glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
-                servo_pos[i] /= scale.x;
-            }
-        }
         servo_matrix[i] = Identity;
         motion_matrix[i] = Identity;
         servos[i]->FillMotionMatrix(servo_pos[i], servo_matrix[i]);
@@ -434,6 +421,79 @@ void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGra
     for (int i = 0; i < (int)servos.size(); ++i) {
         applyMeshServos(motion_matrix[i], i);
     }
+}
+
+std::vector<std::string> DmxServo3d::GetMotionParts() const
+{
+    std::vector<std::string> parts;
+    for (int i = 0; i < num_motion && i < (int)servos.size() && i < (int)motion_meshs.size(); ++i) {
+        parts.push_back("Mesh " + std::to_string(i + 1));
+    }
+    return parts;
+}
+
+bool DmxServo3d::GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const
+{
+    if (index < 0 || index >= num_motion || index >= (int)servos.size() || index >= (int)motion_meshs.size() || !HasValidServoSetup()) {
+        return false;
+    }
+    float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
+    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
+    for (int i = 0; i < (int)servos.size(); ++i) {
+        if (servos[i]->GetChannel() > 0) {
+            servo_pos[i] = servos[i]->GetPositionConst(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            if (servos[i]->IsTranslate()) {
+                glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
+                servo_pos[i] /= scale.x;
+            }
+        }
+    }
+    ComputeMotionMatrices(servo_pos, motion_matrix);
+
+    // Mesh::Draw applies the motion after the mesh offset and before its own
+    // rotation/scale. It pivots only when DrawModel passes rotation=true,
+    // which requires Show Pivot as well.
+    const Mesh* mesh = motion_meshs[index].get();
+    const Servo* servo = servos[index].get();
+    glm::mat4 Identity(1.0f);
+    glm::vec3 offset(mesh->GetOffsetX(), mesh->GetOffsetY(), mesh->GetOffsetZ());
+    glm::mat4 m = motion_matrix[index];
+    if (servo->IsRotate() && show_pivot) {
+        glm::vec3 pivot(servo->GetPivotOffsetX(), servo->GetPivotOffsetY(), servo->GetPivotOffsetZ());
+        m = glm::translate(Identity, pivot) * m * glm::translate(Identity, -pivot);
+    }
+    motion = glm::translate(Identity, offset) * m * glm::translate(Identity, -offset);
+    return true;
+}
+
+void DmxServo3d::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool active)
+{
+    // crash protection
+    if (!HasValidServoSetup()) {
+        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
+        return;
+    }
+
+    float servo_pos[SUPPORTED_SERVOS] = { 0.0f };
+    glm::mat4 Identity = glm::mat4(1.0f);
+    glm::mat4 motion_matrix[SUPPORTED_SERVOS];
+
+    // Draw Static Meshs
+    for (int i = 0; i < num_static; ++i) {
+        static_meshs[i]->Draw(this, preview, sprogram, tprogram, Identity, Identity, i < num_motion ? !motion_meshs[i]->GetExists(this, ctx) : false, 0, 0, 0, false, false);
+    }
+
+    // Get servo positions and fill motion matrices
+    for (int i = 0; i < (int)servos.size(); ++i) {
+        if (servos[i]->GetChannel() > 0 && active) {
+            servo_pos[i] = servos[i]->GetPosition(GetChannelValue(servos[i]->GetChannel() - 1, servos[i]->Is16Bit()));
+            if (servos[i]->IsTranslate()) {
+                glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
+                servo_pos[i] /= scale.x;
+            }
+        }
+    }
+    ComputeMotionMatrices(servo_pos, motion_matrix);
 
     // Draw Motion Meshs
     for (int i = 0; i < num_motion; ++i) {

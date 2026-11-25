@@ -77,6 +77,10 @@ class ModelManager : public ObjectManager
         // with it without asking (the model is gone from the layout either way).
         bool Delete(const std::string &name, bool askAboutEffects = true);
         std::string GenerateModelName(const std::string& candidateModelName) const;
+        // Models added together under new names (an .xmodel import, a paste, a
+        // duplicate) keep their Motion Parent links to each other. renames maps
+        // each source name to the name the new model was given.
+        void RemapMotionParents(const std::map<std::string, std::string>& renames);
         void ResetModelGroups() const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol) const;
         std::string GetLastModelOnPort(const std::string& controllerName, int port, const std::string& excludeModel, const std::string& protocol, int smartReceiver) const;

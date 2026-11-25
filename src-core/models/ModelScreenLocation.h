@@ -418,6 +418,12 @@ public:
     glm::vec3 GetRotationAngles() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
 
+    // A world-space transform applied ahead of the model's own placement by
+    // ApplyModelViewMatrices. Set per frame while the model follows a moving
+    // part of another model (see Model::GetMotionTransform).
+    void SetPreviewMotion(const glm::mat4& m) const { previewMotion = m; hasPreviewMotion = true; }
+    void ClearPreviewMotion() const { hasPreviewMotion = false; }
+
 protected:
     ModelScreenLocation(int points);
     virtual ~ModelScreenLocation() {};
@@ -441,6 +447,8 @@ protected:
     glm::vec3 angles = glm::vec3(0.0);
 
     mutable bool draw_3d = false;
+    mutable glm::mat4 previewMotion = glm::mat4(1.0f);
+    mutable bool hasPreviewMotion = false;
 
     int mSelectableHandles = 0;
     bool _locked = false;

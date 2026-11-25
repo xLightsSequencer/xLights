@@ -263,6 +263,98 @@ float DmxSkull::GetServoPos(Servo* _servo, bool active)
     return servo_pos;
 }
 
+float DmxSkull::GetServoPosConst(const Servo* _servo, bool active) const
+{
+    float servo_pos = 0.0f;
+    if (active && _servo->GetChannel() > 0) {
+        servo_pos = _servo->GetPositionConst(GetChannelValue(_servo->GetChannel() - 1, _servo->Is16Bit()));
+        if (_servo->IsTranslate()) {
+            glm::vec3 scale = GetBaseObjectScreenLocation().GetScaleMatrix();
+            servo_pos /= scale.x;
+        }
+    }
+    return servo_pos;
+}
+
+bool DmxSkull::HasValidServoChannels() const
+{
+    const int count = (int)Nodes.size();
+    return !((has_jaw && jaw_servo->GetChannel() > count) ||
+             (has_pan && pan_servo->GetChannel() > count) ||
+             (has_tilt && tilt_servo->GetChannel() > count) ||
+             (has_nod && nod_servo->GetChannel() > count) ||
+             (has_eye_ud && eye_ud_servo->GetChannel() > count) ||
+             (has_eye_lr && eye_lr_servo->GetChannel() > count));
+}
+
+void DmxSkull::ComputeServoMatrices(bool active, const std::function<float(Servo*, bool)>& servoPos,
+                                    glm::mat4& head_matrix, glm::mat4& jaw_matrix, glm::mat4& eye_matrix) const
+{
+    float pan_pos = servoPos(pan_servo.get(), active && has_pan) + (active ? pan_orient : 0.0f);
+    float tilt_pos = servoPos(tilt_servo.get(), active && has_tilt) + (active ? tilt_orient : 0.0f);
+    float nod_pos = servoPos(nod_servo.get(), active && has_nod) + (active ? nod_orient : 0.0f);
+    float jaw_pos = servoPos(jaw_servo.get(), active && has_jaw) + (active ? jaw_orient : 0.0f);
+    float eye_x_pos = servoPos(eye_lr_servo.get(), active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
+    float eye_y_pos = servoPos(eye_ud_servo.get(), active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
+
+    glm::mat4 Identity = glm::mat4(1.0f);
+    glm::mat4 pan_matrix = Identity;
+    glm::mat4 tilt_matrix = Identity;
+    glm::mat4 nod_matrix = Identity;
+    glm::mat4 eye_x_matrix = Identity;
+    glm::mat4 eye_y_matrix = Identity;
+    jaw_matrix = Identity;
+
+    if (has_jaw)
+        jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
+    if (has_pan)
+        pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
+    if (has_tilt)
+        tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
+    if (has_nod)
+        nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
+    if (has_eye_lr)
+        eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
+    if (has_eye_ud)
+        eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
+
+    head_matrix = pan_matrix * tilt_matrix * nod_matrix;
+    eye_matrix = eye_x_matrix * eye_y_matrix;
+}
+
+std::vector<std::string> DmxSkull::GetMotionParts() const
+{
+    return { "Head", "Jaw" };
+}
+
+bool DmxSkull::GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const
+{
+    if (index < 0 || index > 1 || !HasValidServoChannels()) {
+        return false;
+    }
+    glm::mat4 head_matrix;
+    glm::mat4 jaw_matrix;
+    glm::mat4 eye_matrix;
+    ComputeServoMatrices(true, [this](Servo* s, bool a) { return GetServoPosConst(s, a); }, head_matrix, jaw_matrix, eye_matrix);
+
+    // Same composition Mesh::Draw uses for the head and the jaw in DrawModel.
+    glm::mat4 Identity(1.0f);
+    glm::mat4 local;
+    if (index == 0) {
+        glm::vec3 offset(head_mesh->GetOffsetX(), head_mesh->GetOffsetY(), head_mesh->GetOffsetZ());
+        local = glm::translate(Identity, offset) * head_matrix * glm::translate(Identity, -offset);
+    } else {
+        glm::vec3 offset(jaw_mesh->GetOffsetX(), jaw_mesh->GetOffsetY(), jaw_mesh->GetOffsetZ());
+        glm::vec3 pivot(0.0f, 3.3f * jaw_mesh->GetRenderScaling(), 0.4f * jaw_mesh->GetRenderScaling());
+        local = head_matrix * glm::translate(Identity, offset) * glm::translate(Identity, pivot) * jaw_matrix *
+                glm::translate(Identity, -pivot) * glm::translate(Identity, -offset);
+    }
+    // DisplayModelOnWindow scales and shifts the skull meshes inside the model box.
+    glm::mat4 place = glm::translate(glm::scale(Identity, glm::vec3(0.7f)), glm::vec3(0.0f, -0.7f, is_3d ? 0.0f : 0.5f));
+    motion = place * local * glm::inverse(place);
+    return true;
+}
+
 void DmxSkull::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                                     xlGraphicsProgram* sprogram, xlGraphicsProgram* tprogram, bool is_3d,
                                     const xlColor* c, bool allowSelected, bool wiring,
@@ -273,6 +365,7 @@ void DmxSkull::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* c
         return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(1, 1, 1);
     if (boundingBox) {
         boundingBox[0] = -0.5;
@@ -427,27 +520,7 @@ void DmxSkull::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraph
         return;
     }
 
-    if (has_jaw && jaw_servo->GetChannel() > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
-    }
-    if (has_pan && pan_servo->GetChannel() > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
-    }
-    if (has_tilt && tilt_servo->GetChannel() > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
-    }
-    if (has_nod && nod_servo->GetChannel() > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
-    }
-    if (has_eye_ud && eye_ud_servo->GetChannel() > (int)Nodes.size()) {
-        DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
-        return;
-    }
-    if (has_eye_lr && eye_lr_servo->GetChannel() > (int)Nodes.size()) {
+    if (!HasValidServoChannels()) {
         DmxModel::DrawInvalid(sprogram, &(GetModelScreenLocation()), false, false);
         return;
     }
@@ -474,36 +547,11 @@ void DmxSkull::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraph
     ApplyTransparency(base_color, trans, trans);
     ApplyTransparency(base_color2, trans, trans);
 
-    // Get servo positions
-    float pan_pos, tilt_pos, nod_pos, jaw_pos, eye_x_pos, eye_y_pos;
-    pan_pos = GetServoPos(pan_servo.get(), active && has_pan) + (active ? pan_orient : 0.0f);
-    tilt_pos = GetServoPos(tilt_servo.get(), active && has_tilt) + (active ? tilt_orient : 0.0f);
-    nod_pos = GetServoPos(nod_servo.get(), active && has_nod) + (active ? nod_orient : 0.0f);
-    jaw_pos = GetServoPos(jaw_servo.get(), active && has_jaw) + (active ? jaw_orient : 0.0f);
-    eye_x_pos = GetServoPos(eye_lr_servo.get(), active && has_eye_lr) + (active ? eye_lr_orient : 0.0f);
-    eye_y_pos = GetServoPos(eye_ud_servo.get(), active && has_eye_ud) + (active ? eye_ud_orient : 0.0f);
-
     glm::mat4 Identity = glm::mat4(1.0f);
-    glm::mat4 jaw_matrix = Identity;
-    glm::mat4 pan_matrix = Identity;
-    glm::mat4 tilt_matrix = Identity;
-    glm::mat4 nod_matrix = Identity;
-    glm::mat4 eye_x_matrix = Identity;
-    glm::mat4 eye_y_matrix = Identity;
-
-    // Fill motion matrices
-    if (has_jaw)
-        jaw_servo->FillMotionMatrix(jaw_pos, jaw_matrix);
-    if (has_pan)
-        pan_servo->FillMotionMatrix(pan_pos, pan_matrix);
-    if (has_tilt)
-        tilt_servo->FillMotionMatrix(tilt_pos, tilt_matrix);
-    if (has_nod)
-        nod_servo->FillMotionMatrix(nod_pos, nod_matrix);
-    if (has_eye_lr)
-        eye_lr_servo->FillMotionMatrix(eye_x_pos, eye_x_matrix);
-    if (has_eye_ud)
-        eye_ud_servo->FillMotionMatrix(eye_y_pos, eye_y_matrix);
+    glm::mat4 head_matrix;
+    glm::mat4 jaw_matrix;
+    glm::mat4 eye_x_matrix;
+    ComputeServoMatrices(active, [this](Servo* s, bool a) { return GetServoPos(s, a); }, head_matrix, jaw_matrix, eye_x_matrix);
 
     // Adjust scaling to render size of 1
     float jaw_pivot_y = 3.3f;
@@ -526,8 +574,6 @@ void DmxSkull::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx, xlGraph
     }
 
     // Draw Meshs
-    glm::mat4 head_matrix = pan_matrix * tilt_matrix * nod_matrix;
-    eye_x_matrix = eye_x_matrix * eye_y_matrix;
     eye_l_mesh->SetColor(eye_color, "EyeColor");
     eye_r_mesh->SetColor(eye_color, "EyeColor");
     head_mesh->Draw(this, preview, sprogram, tprogram, Identity, head_matrix, false, 0, 0, 0, false, false);

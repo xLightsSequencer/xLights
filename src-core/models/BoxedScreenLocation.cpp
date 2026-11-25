@@ -124,6 +124,9 @@ void BoxedScreenLocation::TranslatePoint(float &sx, float &sy, float &sz) const 
 }
 
 void BoxedScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
+    if (hasPreviewMotion) {
+        ctx->ApplyMatrix(previewMotion);
+    }
     ctx->Translate(worldPos_x,
                    worldPos_y,
                    draw_3d ? worldPos_z : 0);
@@ -140,6 +143,18 @@ void BoxedScreenLocation::ApplyModelViewMatrices(xlGraphicsContext *ctx) const {
         ctx->Rotate(f, 1, 0, 0);
     }
         
+}
+
+glm::mat4 BoxedScreenLocation::GetModelViewMatrix(bool is_3d) const {
+    glm::mat4 m = glm::translate(Identity, glm::vec3(worldPos_x, worldPos_y, is_3d ? worldPos_z : 0.0f));
+    m = glm::rotate(m, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
+    m = glm::rotate(m, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+    m = glm::rotate(m, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+    m = glm::scale(m, glm::vec3(scalex, scaley, scalez));
+    if (!is_3d && perspective != 0.0f) {
+        m = glm::rotate(m, perspective, glm::vec3(1.0f, 0.0f, 0.0f));
+    }
+    return m;
 }
 
 

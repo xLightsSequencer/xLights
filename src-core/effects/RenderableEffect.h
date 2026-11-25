@@ -187,6 +187,9 @@ public:
     virtual bool needToAdjustSettings(const std::string& version);
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true);
     virtual bool needsLoadFiles() const { return false; }
+    // The grid skips an effect's background when no palette colour is chosen;
+    // an effect that doesn't draw with the palette draws it regardless.
+    virtual bool BackgroundNeedsPalette() const { return true; }
     virtual void loadFiles(Effect* effect) {}
     virtual void AdjustSettingsAfterSplit(Effect *first, Effect *second) {}
 

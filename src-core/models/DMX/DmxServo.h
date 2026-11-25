@@ -51,11 +51,15 @@ public:
 
     void GetPWMOutputs(std::map<uint32_t, PWMOutput> &channels) const override;
 
+    [[nodiscard]] std::vector<std::string> GetMotionParts() const override;
+
     void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
 
 protected:
     virtual void InitModel() override;
     void Clear();
+    bool GetPartLocalMotion(int index, bool is_3d, glm::mat4& motion) const override;
+    bool HasValidServoSetup() const;
 
     void DrawModel(IModelPreview* preview, xlGraphicsContext *ctx, xlGraphicsProgram *program, const xlColor* c, bool active);
 

@@ -32,6 +32,8 @@ public:
               glm::mat4 &motion_matrix,
               int transparency, float brightness, bool only_image,
               float pivot_offset_x, float pivot_offset_y, bool rotation, bool use_pivot);
+    // The image's own offset/rotation/scale, before any servo motion.
+    glm::mat4 GetBaseMatrix() const;
 
     bool ImageSelected() const { return image_selected; }
     void ClearImageSelected() { image_selected = false; }

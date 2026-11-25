@@ -1331,7 +1331,7 @@ public:
                         SeqMutationGuard::Scope renderTemporary;
                         
                         // disable the background display lists as the "duplicate" effect doesn't support this
-                        tempEffect->EnableBackgroundDisplayLists(false);
+                        tempEffect->DisableBackgroundDisplayList();
 
                         // The duplicate effect itself can be edited while this renders.
                         SettingsMap origSettings;
@@ -1376,7 +1376,7 @@ public:
                         copy = srcEf;
                         tempEffect = new Effect(*srcEf);
                         ef = tempEffect;
-                        ef->EnableBackgroundDisplayLists(false);
+                        ef->DisableBackgroundDisplayList();
                     }
                 }
             }

@@ -1647,6 +1647,20 @@ bool ModelManager::DeleteController(const std::string& name)
 }
 
 // generate the next similar model name to the candidateName we are given
+void ModelManager::RemapMotionParents(const std::map<std::string, std::string>& renames) {
+    for (const auto& [from, to] : renames) {
+        Model* m = GetModel(to);
+        if (m == nullptr) {
+            continue;
+        }
+        auto it = renames.find(m->GetMotionParent());
+        if (it != renames.end() && it->second != m->GetMotionParent()) {
+            m->SetMotionParent(it->second, m->GetMotionParentPart());
+            m->IncrementChangeCount();
+        }
+    }
+}
+
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
     lastGeneratedModelName = GenerateObjectName(candidateName);
@@ -2407,6 +2421,10 @@ bool ModelManager::Delete(const std::string& name, bool askAboutEffects)
                     if (it2.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
                         ModelGroup* group = (ModelGroup*)it2.second;
                         group->ModelRemoved(mn);
+                    }
+                    if (it2.second->GetMotionParent() == mn) {
+                        it2.second->SetMotionParent("", "");
+                        it2.second->IncrementChangeCount();
                     }
                 }
                 _setManager.OnModelDeleted(mn);

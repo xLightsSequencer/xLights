@@ -59,6 +59,18 @@ void DmxImage::Init(BaseObject* base)
     }
 }
 
+glm::mat4 DmxImage::GetBaseMatrix() const
+{
+    glm::mat4 Identity = glm::mat4(1.0f);
+    glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
+    glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
+    glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
+    return translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
+}
+
 void DmxImage::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram *pg,
                     glm::mat4 &motion_matrix,
                     int transparency, float brightness, bool only_image,
@@ -92,13 +104,7 @@ void DmxImage::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram 
         xlTexture* image = _images[preview->getName()];
 
         glm::mat4 Identity = glm::mat4(1.0f);
-        glm::mat4 scalingMatrix = glm::scale(Identity, glm::vec3(scalex, scaley, scalez));
-        glm::mat4 rx = glm::rotate(Identity, glm::radians(rotatex), glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ry = glm::rotate(Identity, glm::radians(rotatey), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 rz = glm::rotate(Identity, glm::radians(rotatez), glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::quat rotate_quat = glm::quat_cast(rx * ry * rz);
-        glm::mat4 translationMatrix = glm::translate(Identity, glm::vec3(offset_x, offset_y, offset_z));
-        glm::mat4 m = translationMatrix * glm::toMat4(rotate_quat) * scalingMatrix;
+        glm::mat4 m = GetBaseMatrix();
         if (rotation) {
             glm::mat4 pivotToZero = glm::translate(Identity, glm::vec3(-pivot_offset_x, -pivot_offset_y, 0.0f));
             glm::mat4 pivotBack = glm::translate(Identity, glm::vec3(pivot_offset_x, pivot_offset_y, 0.0f));
@@ -127,13 +133,14 @@ void DmxImage::Draw(BaseObject* base, IModelPreview* preview, xlGraphicsProgram 
 
         int end = vac->getCount();
         int alpha = (100.0 - transparency) * 255.0 / 100.0;
+        int bright = (int)std::clamp(brightness, 0.0f, 100.0f);
         pg->addStep([=](xlGraphicsContext *ctx) {
             ctx->PushMatrix();
             ctx->ApplyMatrix(m);
             ctx->drawTexture(image,
                              -0.5, 0.5, 0.5, -0.5,
                              0.0, 0.0, 1.0, 1.0,
-                             true, 100, alpha);
+                             true, bright, alpha);
             if (end != start) {
                 if (rotation) {
                     ctx->Translate(pivot_offset_x, pivot_offset_y, 0.0f);

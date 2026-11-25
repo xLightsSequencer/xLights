@@ -37,8 +37,10 @@ public:
 
     bool IsTranslate() const;
     bool IsRotate() const;
-    void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix);
+    void FillMotionMatrix(float servo_pos, glm::mat4& motion_matrix) const;
     float GetPosition(int channel_value);
+    // Same as GetPosition, but doesn't record the value used for "0 = hold".
+    float GetPositionConst(int channel_value) const;
     bool Is16Bit() const { return _16bit; }
     bool Is2D() const { return is_2d; }
     
@@ -74,6 +76,9 @@ public:
 protected:
     
 private:
+    int ClampChannelValue(int channel_value) const;
+    float PositionForValue(int channel_value) const;
+
     enum SERVO_STYLE {
         SERVO_STYLE_TRANSLATEX,
         SERVO_STYLE_TRANSLATEY,

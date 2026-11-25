@@ -179,6 +179,7 @@ void CustomModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext
             va->AddVertex(cx + hw, cy - hh, bkgZ, 1.0f, 1.0f);
             va->AddVertex(cx + hw, cy + hh, bkgZ, 1.0f, 0.0f);
             GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+            PreparePreviewMotion(is_3d, allowSelected);
             uint8_t alpha = (uint8_t)std::lround((100 - _bkg_transparency) * 255.0 / 100.0);
             solidProgram->addStep([=, this](xlGraphicsContext* ctx) {
                 ctx->PushMatrix();

@@ -280,6 +280,7 @@ void DmxMovingHeadAdv::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsCo
         return;
 
     screenLocation.PrepareToDraw(is_3d, allowSelected);
+    PreparePreviewMotion(is_3d, allowSelected);
     screenLocation.UpdateBoundingBox(Nodes);
     if (boundingBox) {
         boundingBox[0] = -0.5;

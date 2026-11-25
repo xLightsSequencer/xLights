@@ -576,6 +576,20 @@ TEST_CASE("Roundtrip shadow model and chain attributes", "[roundtrip][models]") 
     CHECK(std::string(d.first_child().attribute("ShadowModelFor").value()) == "Other");
     CHECK(std::string(d.first_child().attribute("ModelChain").value()) == ">Prev");
 }
+TEST_CASE("Roundtrip motion parent attributes", "[roundtrip][models]") {
+    Cycle c = RunCycle(Line({ { "MotionParent", "Arm" }, { "MotionParentPart", "Servo 2" } }));
+    REQUIRE(c.ok);
+    CHECK(c.s2 == c.s1);
+    pugi::xml_document d;
+    REQUIRE(d.load_string(c.s1.c_str()));
+    CHECK(std::string(d.first_child().attribute("MotionParent").value()) == "Arm");
+    CHECK(std::string(d.first_child().attribute("MotionParentPart").value()) == "Servo 2");
+
+    // no parent writes neither attribute
+    Cycle none = RunCycle(Line({}));
+    REQUIRE(none.ok);
+    CHECK(none.s1.find("MotionParent") == std::string::npos);
+}
 TEST_CASE("Roundtrip active flag and from-base flag", "[roundtrip][models]") {
     Cycle c = RunCycle(Line({ { "Active", "0" }, { "FromBase", "1" } }));
     REQUIRE(c.ok);
