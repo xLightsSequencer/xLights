@@ -2549,6 +2549,9 @@ bool FPP::UploadUDPOutputsForProxy(OutputManager* outputManager) {
             }
         }
     }
+    if (selected.empty()) {
+        messages.push_back("WARNING - Upload Proxy Output is enabled but no controllers have " + ipAddress + " set as their FPP Proxy; nothing will be uploaded.");
+    }
 
     nlohmann::json f = CreateUniverseFile(selected, false);
 
@@ -2813,32 +2816,25 @@ void FPP::UpdateChannelRanges()
     nlohmann::json jval;
     int count = 0;
     while (count < 20) {
-        if (GetURLAsJSON("/api/system/info", jval, false)) {
-            if (jval.contains("channelRanges")) {
-                std::string r = GetJSONStringValue(jval, "channelRanges");
-                if (r.size() > 0) {
-                    //append the  new ranges,  then parse/reset which will do a merge/cleanup
-                    if (ranges.size() > 0) {
-                        ranges += ",";
-                    }
-                    ranges += r;
-                    std::map<int, int> rngs;
-                    FillRanges(rngs);
-                    SetNewRanges(rngs);
-                    return;
+        if (GetURLAsJSON("/api/system/info", jval, false) && jval.contains("channelRanges")) {
+            std::string r = GetJSONStringValue(jval, "channelRanges");
+            if (r.size() > 0) {
+                //append the  new ranges,  then parse/reset which will do a merge/cleanup
+                if (ranges.size() > 0) {
+                    ranges += ",";
                 }
-            } else {
-                //fppd hasn't restarted yet, wait a tiny bit and try again
-                ++count;
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                ranges += r;
+                std::map<int, int> rngs;
+                FillRanges(rngs);
+                SetNewRanges(rngs);
+                return;
             }
         }
-        else {
-            // get call failed
-            ++count;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
+        // either the GET failed, fppd hasn't restarted yet, or it reports no ranges yet; wait a tiny bit and try again
+        ++count;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+    messages.push_back("WARNING - No channel ranges were reported by " + ipAddress + " after sending outputs; it may not have any outputs configured.");
 }
 
 void FPP::SetDescription(const std::string &st) {
