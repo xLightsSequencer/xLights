@@ -1079,7 +1079,6 @@ void xLightsFrame::Scrub(wxCommandEvent& event)
 
     const int ms = std::clamp(event.GetInt(), 0, CurrentSeqXmlFile->GetSequenceDurationMS());
     const int frame = std::min(ms / static_cast<int>(_seqData.FrameTime()), static_cast<int>(_seqData.NumFrames()) - 1);
-    TimerOutput(frame);
     RenderScrubFrame(ms, frame);
 }
 
@@ -1136,6 +1135,9 @@ void xLightsFrame::RenderScrubFrame(int ms, int frame)
     mainSequencer->UpdateTimeDisplay(ms, _fps);
 
     sequenceVideoPanel->UpdateVideo(ms);
+
+    // have the frame, copy from SeqData
+    TimerOutput(frame);
     if (playModel != nullptr && !AllModels.IsModelValid(playModel)) {
         playModel = nullptr;
     }
