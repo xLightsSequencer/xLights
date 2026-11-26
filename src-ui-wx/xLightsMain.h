@@ -1814,6 +1814,7 @@ public:
     std::string BuildEffectsXml();
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
+    void StepSequenceFrame(int direction);
     Model *GetModel(const std::string& name) const override;
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
@@ -2181,6 +2182,7 @@ private:
 
     // Events
     void Scrub(wxCommandEvent& event);
+    void RenderScrubFrame(int ms, int frame);
     void Zoom(wxCommandEvent& event);
     void Scroll( wxCommandEvent& event);
     void WindowResized( wxCommandEvent& event);

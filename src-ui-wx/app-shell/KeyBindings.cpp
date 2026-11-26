@@ -86,6 +86,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "TOGGLE_PLAY", KBSCOPE::All },
     { "START_OF_SONG", KBSCOPE::All },
     { "END_OF_SONG", KBSCOPE::All },
+    { "PREVIOUS_FRAME", KBSCOPE::Sequence },
+    { "NEXT_FRAME", KBSCOPE::Sequence },
     { "STOP", KBSCOPE::All },
     { "PAUSE", KBSCOPE::All },
     { "EFFECT", KBSCOPE::Sequence },
@@ -223,6 +225,8 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "TOGGLE_PLAY", "Play/Stop playing the song." },
     { "START_OF_SONG", "Jump to the start of the song." },
     { "END_OF_SONG", "Jump to the end of the song." },
+    { "PREVIOUS_FRAME", "Step back one sequence frame." },
+    { "NEXT_FRAME", "Step forward one sequence frame." },
     { "STOP", "Stop sequence playback." },
     { "PAUSE", "Pause sequence playback." },
     { "EFFECT", "Insert an effect." },
@@ -322,6 +326,8 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "PLAY_LOOP"),
     KeyBinding("HOME", false, "START_OF_SONG"),
     KeyBinding("END", false, "END_OF_SONG"),
+    KeyBinding(",", false, "PREVIOUS_FRAME"),
+    KeyBinding(".", false, "NEXT_FRAME"),
     KeyBinding("", true, "PLAY"),
     KeyBinding("SPACE", false, "TOGGLE_PLAY"),
     KeyBinding("", true, "STOP"),
@@ -1095,6 +1101,17 @@ void KeyBindingMap::Load(const wxFileName &fileName) noexcept
                     bool found = std::find_if(begin(_bindings), end(_bindings), [type](const KeyBinding& b) {return b.GetType() == type; }) != _bindings.end();
                     if (!found) {
                         spdlog::debug("Adding missing keybinding {}.", (const char*)type.c_str());
+                        if (type == "PREVIOUS_FRAME" || type == "NEXT_FRAME") {
+                            const auto binding = std::find_if(DefaultBindings.begin(), DefaultBindings.end(),
+                                [&type](const KeyBinding& candidate) { return candidate.GetType() == type; });
+                            if (binding != DefaultBindings.end() &&
+                                std::none_of(_bindings.begin(), _bindings.end(), [&binding](const KeyBinding& existing) {
+                                    return !existing.IsDisabled() && binding->IsDuplicateKey(existing);
+                                })) {
+                                _bindings.push_back(*binding);
+                                continue;
+                            }
+                        }
                         _bindings.emplace_back(KeyBinding(WXK_NONE, true, type, false, false, false, false));
                     }
                 }

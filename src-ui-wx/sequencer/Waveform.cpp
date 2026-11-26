@@ -233,6 +233,7 @@ void Waveform::mouseLeftDown( wxMouseEvent& event)
 
 void Waveform::mouseLeftUp( wxMouseEvent& event)
 {
+    const bool normalSelection = m_dragging && m_drag_mode == DRAG_NORMAL && !event.ControlDown();
     if (m_dragging) {
         ReleaseMouse();
         m_dragging = false;
@@ -243,6 +244,12 @@ void Waveform::mouseLeftUp( wxMouseEvent& event)
 
     wxCommandEvent eventSelected(EVT_WAVE_FORM_HIGHLIGHT);
     if (mTimeline->GetNewEndTimeMS() == -1) {
+        if (normalSelection) {
+            wxCommandEvent seekEvent(EVT_TIME_SELECTED);
+            seekEvent.SetEventObject(this);
+            seekEvent.SetInt(mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX()));
+            wxPostEvent(mParent, seekEvent);
+        }
         eventSelected.SetInt(0);
     } else {
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
@@ -651,7 +658,7 @@ void Waveform::mouseMoved(wxMouseEvent& event)
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
         DRAG_MODE new_mode;
         const wxCursor* new_cursor;
-        if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
+        if (selected_x2 >= 0 && event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
             new_mode = DRAG_LEFT_EDGE;
             new_cursor = &s_pointLeftCursor;
         } else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {

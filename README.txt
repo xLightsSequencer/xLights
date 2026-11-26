@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
+    -enh (Upercat)               Sequencer: stopping with Space returns the playhead to the playback start (#7433)
+    -enh (Upercat)               Sequencer: click the ruler or waveform to park the playhead and preview that frame (#7433)
+    -enh (Upercat)               Sequencer: press comma or period to step backward or forward one frame (#7432)
     -bug (derwin12)              Link controller upload preference changes are saved again
     -enh (dkulp)                 Live collaboration (beta, off by default): host or join a session on the local
                                  network and edit one sequence together (File > Collaborate)

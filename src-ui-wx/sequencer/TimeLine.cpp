@@ -680,11 +680,23 @@ void TimeLine::mouseLeftUp( wxMouseEvent& event)
         return;
     }
 
-    triggerPlay();
-    if(m_dragging)
-    {
-        ReleaseMouse();
-        m_dragging = false;
+    if (!m_dragging) {
+        return;
+    }
+    ReleaseMouse();
+    m_dragging = false;
+
+    const int selectedTime = GetAbsoluteTimeMSfromPosition(event.GetX());
+    if (mCurrentPlayMarkerEndMS >= 0 &&
+        GetPositionFromSelection(event.GetX()) != mCurrentPlayMarkerStart) {
+        triggerPlay();
+    } else {
+        mCurrentPlayMarkerEnd = -1;
+        mCurrentPlayMarkerEndMS = -1;
+        wxCommandEvent seekEvent(EVT_TIME_SELECTED);
+        seekEvent.SetEventObject(this);
+        seekEvent.SetInt(selectedTime);
+        wxPostEvent(mParent, seekEvent);
     }
     Refresh(false);
 }
