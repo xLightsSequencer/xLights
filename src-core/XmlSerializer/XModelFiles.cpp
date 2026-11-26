@@ -250,7 +250,7 @@ int Unpack(pugi::xml_node root, const std::string& showDir) {
                 dir = base / (i == 1 ? prop : prop + "-" + std::to_string(i));
                 bool fits = true;
                 for (const Embedded* e : files) {
-                    const fs::path target = dir / fs::path(e->rest);
+                    const fs::path target = (dir / fs::path(e->rest)).make_preferred();
                     if (FileExists(target.string(), false) && !SameBytes(target, e->bytes)) {
                         fits = false;
                         break;
@@ -259,7 +259,7 @@ int Unpack(pugi::xml_node root, const std::string& showDir) {
                 if (fits) break;
             }
             for (const Embedded* e : files) {
-                const fs::path target = dir / fs::path(e->rest);
+                const fs::path target = (dir / fs::path(e->rest)).make_preferred();
                 if (!FileExists(target.string(), false)) {
                     std::error_code ec;
                     fs::create_directories(target.parent_path(), ec);
