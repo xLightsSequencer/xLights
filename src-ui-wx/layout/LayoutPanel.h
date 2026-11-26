@@ -811,6 +811,7 @@ class LayoutPanel: public wxPanel
         void ProcessLeftMouseClick3D(wxMouseEvent& event);
         wxTreeListCtrl* CreateTreeListCtrl(long style, wxPanel* panel, long id, const wxString& windowName, const std::string& colOrderKey, const wxString& nameColTitle, TreeChanColumns& cols);
         int AddModelToTree(wxTreeListCtrl* tree, const TreeChanColumns& cols, Model *model, wxTreeListItem* parent, bool expanded, std::list<wxTreeListItem> &toExpand, int nativeOrder, bool fullName = false);
+        bool RefreshGroupTreeNode(ModelGroup* grp);
         void refreshOneModelList(wxTreeListCtrl* tree, wxDataViewModel* internalModel, const TreeChanColumns& cols);
         wxTreeListCtrl* ActiveModelTree() const;
         void RenameModelInTree(Model* model, const std::string& new_name);

@@ -2154,6 +2154,61 @@ int LayoutPanel::AddModelToTree(wxTreeListCtrl* tree, const TreeChanColumns& col
     return 0;
 }
 
+// A group edit (reorder/add/remove member) only ever changes that group's
+// own children in the Groups tree - nothing else in either tree depends on
+// a ModelGroup's member list or order, so there's no need for
+// UpdateModelList(true, ...)'s full teardown/rebuild of every model and
+// group in the show. Returns false (caller should fall back to the full
+// rebuild) if the group's own node can't be found, e.g. it's filtered out
+// of the current view, or is genuinely new.
+bool LayoutPanel::RefreshGroupTreeNode(ModelGroup* grp) {
+    if (grp == nullptr) return false;
+
+    wxTreeListItem groupItem;
+    for (wxTreeListItem item = TreeListViewGroups->GetFirstItem();
+         item.IsOk();
+         item = TreeListViewGroups->GetNextSibling(item))
+    {
+        auto* data = dynamic_cast<ModelTreeData*>(TreeListViewGroups->GetItemData(item));
+        if (data != nullptr && data->GetModel() == grp) {
+            groupItem = item;
+            break;
+        }
+    }
+    if (!groupItem.IsOk()) return false;
+
+    TreeSortState sortState;
+    FreezeTreeListView(TreeListViewGroups, TreeListGroupsInternalModel, sortState);
+
+    bool wasExpanded = TreeListViewGroups->IsExpanded(groupItem);
+
+    wxTreeListItem child = TreeListViewGroups->GetFirstChild(groupItem);
+    while (child.IsOk()) {
+        TreeListViewGroups->DeleteItem(child);
+        child = TreeListViewGroups->GetFirstChild(groupItem);
+    }
+
+    std::list<wxTreeListItem> dummyExpand;
+    int i = 0;
+    for (const auto& it : grp->ModelNames()) {
+        Model* m = xlights->AllModels[it];
+        if (m == nullptr) {
+            spdlog::error("Model group {} thought it contained model '{}' but it didn't. This would have crashed.", grp->GetName(), it);
+        } else if (m == grp) {
+            spdlog::error("Model group contains itself. '{}'", grp->GetName());
+        } else {
+            AddModelToTree(TreeListViewGroups, groupsTreeCols, m, &groupItem, false, dummyExpand, i, true);
+            i++;
+        }
+    }
+
+    std::list<wxTreeListItem> toExpand;
+    if (wasExpanded) toExpand.push_back(groupItem);
+    ThawTreeListView(TreeListViewGroups, TreeListGroupsInternalModel, toExpand, sortState);
+
+    return true;
+}
+
 void LayoutPanel::ReloadModelList() {
     UpdateModelList(true);
 }
@@ -13163,6 +13218,21 @@ void LayoutPanel::ShowPropGrid(bool show) {
     if (CurrentObjectsPage() == ObjectsPage::Controllers) {
         return;
     }
+
+    // HandleSelectionChanged calls this on every reselect, including
+    // re-selecting a group right after editing it (see
+    // LayoutPanel::ModelGroupUpdated), even though the right pane is
+    // already showing. The sizer Hide()/Show() + Layout() below causes a
+    // brief visible flash as it reflows, so skip it entirely when the
+    // requested state already matches what's on screen.
+    if (SettingsPaneContainer != nullptr) {
+        bool alreadyInState = show
+            ? (propertyEditor->IsShown() && !ModelGroupWindow->IsShown() && !controllerProps->IsShown())
+            : (ModelGroupWindow->IsShown() && !propertyEditor->IsShown() && !controllerProps->IsShown());
+        if (alreadyInState) {
+            return;
+        }
+    }
     wxAuiPaneInfo& ms = layout_mgr->GetPane("ModelSettings");
     if (show) {
         if (SettingsPaneContainer != nullptr) {
@@ -13698,8 +13768,26 @@ void LayoutPanel::ModelGroupUpdated(ModelGroup *grp) {
                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                   OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::ModelGroupUpdated", nullptr, nullptr, grp->GetName());
 
-    std::vector<Model *> models;
-    UpdateModelList(true, models);
+    // RefreshGroupTreeNode only touches grp's own children, so (unlike the
+    // UpdateModelList(true, ...) fallback) it never deselects the tree -
+    // github issue #7049's full-rebuild hazard (a stale selection surviving
+    // onto the wrong row) doesn't apply when nothing but this one node's
+    // children were torn down and rebuilt.
+    if (!RefreshGroupTreeNode(grp)) {
+        std::vector<Model *> models;
+        UpdateModelList(true, models);
+    }
+
+    // Reselecting the group re-enters HandleSelectionChanged ->
+    // ModelGroupPanel::UpdatePanel(), which is what makes OnButtonUpClick/
+    // Down/AddToModelGroup/RemoveFromModelGroup's
+    // _lastFirstSelectedModel(InGroup)Index actually get used to restore the
+    // moved/added/removed model's own selection. Needed whether or not the
+    // tree was fully rebuilt above (UpdateModelList(true,...) explicitly
+    // deselects both trees, so the full-rebuild path needs it to restore the
+    // group's own selection too; RefreshGroupTreeNode doesn't touch selection,
+    // but the ModelGroupPanel reselect is still required either way).
+    SelectModelInTree(grp);
 }
 
 CopyPasteBaseObject::CopyPasteBaseObject() {
