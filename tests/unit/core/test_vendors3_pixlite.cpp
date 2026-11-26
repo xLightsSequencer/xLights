@@ -10,9 +10,14 @@
 #include <unistd.h>
 
 #include <atomic>
+#include <cerrno>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <thread>
+
+#include <spdlog/sinks/ringbuffer_sink.h>
+#include <spdlog/spdlog.h>
 
 #include "support/ExposeVendors.h"
 #include "controllers/Pixlite16.h"
@@ -206,10 +211,19 @@ public:
             to.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             to.sin_port = htons(kPixlitePort);
             while (!_stop) {
-                ::sendto(_fd, _reply.data(), _reply.size(), 0, (sockaddr*)&to, sizeof(to));
+                if (::sendto(_fd, _reply.data(), _reply.size(), 0, (sockaddr*)&to, sizeof(to)) < 0) {
+                    _sendErrors++;
+                    _lastErrno = errno;
+                } else {
+                    _sent++;
+                }
                 std::this_thread::sleep_for(std::chrono::microseconds(200));
             }
         });
+    }
+    std::string Stats() const {
+        return "fake controller sent " + std::to_string(_sent.load()) + " replies, " + std::to_string(_sendErrors.load()) +
+               " send errors (last errno " + std::to_string(_lastErrno.load()) + ")";
     }
     ~FakePixliteUdp() {
         _stop = true;
@@ -221,8 +235,15 @@ private:
     std::vector<uint8_t> _reply;
     int _fd = -1;
     std::atomic<bool> _stop{ false };
+    std::atomic<int> _sent{ 0 };
+    std::atomic<int> _sendErrors{ 0 };
+    std::atomic<int> _lastErrno{ 0 };
     std::thread _thread;
 };
+
+// What the handler logged while connecting, so a failed connect explains itself in the
+// test report: the nightly runner that fails it hands back nothing but that message.
+std::string gConnectLog;
 
 // Constructs the handler against the fake controller. Returns null (and the caller skips)
 // when the PixLite port is taken: the handler would then fall back to broadcasting on the
@@ -230,8 +251,40 @@ private:
 std::unique_ptr<Pixlite16> Connect(const std::vector<uint8_t>& reply) {
     VendorsTestInit();
     if (!CanBindPixlitePort()) return nullptr;
-    FakePixliteUdp peer(reply);
-    return std::make_unique<Pixlite16>("127.0.0.1");
+    auto ring = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(1024);
+    auto capture = std::make_shared<spdlog::logger>("pixlite-connect", ring);
+    capture->set_level(spdlog::level::debug);
+    capture->set_pattern("%v");
+    auto previous = spdlog::default_logger();
+    spdlog::set_default_logger(capture);
+    std::unique_ptr<Pixlite16> p;
+    {
+        FakePixliteUdp peer(reply);
+        p = std::make_unique<Pixlite16>("127.0.0.1");
+        gConnectLog = peer.Stats();
+    }
+    spdlog::set_default_logger(previous);
+    // one line, oldest first, repeats collapsed: the nightly dashboard keeps ~400 characters
+    std::string last;
+    int repeats = 0;
+    auto flush = [&]() {
+        if (repeats > 1) gConnectLog += " (x" + std::to_string(repeats) + ")";
+    };
+    for (const auto& raw : ring->last_formatted()) {
+        const auto b = raw.find_first_not_of(" ");
+        const auto e = raw.find_last_not_of(" \r\n");
+        const std::string line = b == std::string::npos ? "" : raw.substr(b, e - b + 1);
+        if (line == last) {
+            ++repeats;
+            continue;
+        }
+        flush();
+        gConnectLog += " | " + line;
+        last = line;
+        repeats = 1;
+    }
+    flush();
+    return p;
 }
 
 #define CONNECT_OR_SKIP(var, reply)                                                   \
@@ -239,6 +292,7 @@ std::unique_ptr<Pixlite16> Connect(const std::vector<uint8_t>& reply) {
     if (!var) {                                                                       \
         SKIP("UDP port 49150 is in use; the PixLite handler would broadcast instead"); \
     }                                                                                 \
+    INFO(gConnectLog);                                                                \
     REQUIRE(var->IsConnected())
 
 int Rd16(const uint8_t* d, int pos) {
@@ -329,6 +383,7 @@ TEST_CASE("Pixlite3 parses V6 and V8 replies", "[vendors3][pixlite3]") {
         r.dmx = 4;
         auto p = Connect(MakeV5Plus(version, r));
         if (!p) SKIP("UDP port 49150 is in use");
+        INFO(gConnectLog);
         REQUIRE(p->IsConnected());
         auto& c = p->_config;
         CHECK(p->_protocolVersion == version);
