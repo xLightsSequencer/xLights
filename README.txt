@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (Scott)                 Fix the model group editor flashing blank when moving/adding/removing
                                  models in a group
     -bug (derwin12)              Link controller upload preference changes are saved again
+    -bug (derwin12)              Batch Render's Last Render Date shows the right date for sequences in show
+                                 subfolders when a separate FSEQ folder is set
     -enh (dkulp)                 Live collaboration (beta, off by default): host or join a session on the local
                                  network and edit one sequence together (File > Collaborate)
     -enh (dkulp)                 iPad - Live collaboration (beta, off by default): host a sequence or join one from

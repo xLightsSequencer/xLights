@@ -577,7 +577,8 @@ void BatchRenderDialog::DisplayDateRendered(std::string const& fileName, wxTreeL
 
     wxString fseqName = showDirectory + wxFileName::GetPathSeparator() + fileName.substr(0, fileName.length() - 4) + ".fseq";
     if (frame->GetFseqDirectory() != showDirectory || !FileExists(fseqName)) {
-        fseqName = wxString(frame->GetFseqDirectory()) + wxFileName::GetPathSeparator() + fileName.substr(0, fileName.length() - 4) + ".fseq";
+        // The FSEQ folder is flat: a sequence in a show subfolder renders to <fseqDir>/<name>.fseq.
+        fseqName = wxString(frame->GetFseqDirectory()) + wxFileName::GetPathSeparator() + wxFileName(fileName).GetName() + ".fseq";
     }
 
     if (FileExists(fseqName)) {
