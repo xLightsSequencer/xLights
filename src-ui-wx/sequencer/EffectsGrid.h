@@ -29,6 +29,7 @@
 
 #include <map>
 #include <array>
+#include <utility>
 
 #define MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT 4
 
@@ -268,6 +269,7 @@ private:
     void UpdateZoomPosition(int time) const;
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
+    int RestoreAdditiveDragBaseSelection();
     void UpdateSelectedEffects();
     void SetFirstEffectSelected();
     void CheckForPartialCell(int x_pos);
@@ -379,7 +381,7 @@ private:
     bool mDragThresholdExceeded;
     bool mMouseOperationsCancelled;
     bool mDragAddToSelection = false;
-    std::vector<Effect*> mAdditiveDragBaseSelection;
+    std::vector<std::pair<Effect*, int>> mAdditiveDragBaseSelection;
     int mDragStartRow;
     int mDragStartX;
     int mDragStartTimeMS = 0; // lasso anchor in time so it survives horizontal scroll/zoom
