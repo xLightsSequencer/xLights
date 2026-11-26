@@ -106,7 +106,7 @@ public:
 
     MediaType GetType() const { return _type; }
     const std::string& GetFilePath() const { return _filePath; }
-    void SetFilePath(const std::string& path) { _filePath = path; }
+    void SetFilePath(const std::string& path) { _filePath = path; _diskPath.clear(); }
     const std::string& GetEmbeddedData() const { return _embeddedData; }
     bool IsEmbedded() const { return _isEmbedded; }
     virtual bool IsEmbeddable() const { return true; }
@@ -163,6 +163,7 @@ protected:
 
     MediaType _type;
     std::string _filePath;
+    std::string _diskPath;          // where _filePath was found on disk (FixFile-resolved); empty until read
     std::string _embeddedData;      // Base64 encoded data
     std::atomic_bool _used;
     std::atomic_bool _usedByMetadata{false};
