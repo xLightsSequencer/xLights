@@ -269,7 +269,7 @@ private:
     void UpdateZoomPosition(int time) const;
     void EstablishSelectionRectangle();
     void UpdateSelectionRectangle();
-    int RestoreAdditiveDragBaseSelection() const;
+    int RestoreAdditiveDragBaseSelection();
     void UpdateSelectedEffects();
     void SetFirstEffectSelected();
     void CheckForPartialCell(int x_pos);

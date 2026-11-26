@@ -7388,7 +7388,7 @@ void EffectsGrid::UpdateZoomPosition(int time) const {
     mTimeline->SetZoomMarkerMS(time);
 }
 
-int EffectsGrid::RestoreAdditiveDragBaseSelection() const {
+int EffectsGrid::RestoreAdditiveDragBaseSelection() {
     if (!mDragging || !mDragAddToSelection) {
         return 0;
     }
