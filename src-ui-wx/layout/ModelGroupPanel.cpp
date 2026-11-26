@@ -608,9 +608,10 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     ResizeColumns();
 
-    ListBoxModelsInGroup->Thaw();
-    ListBoxAddToModelGroup->Thaw();
-
+    // Restore scroll position and selection before Thaw() - otherwise the
+    // list repaints once showing the just-rebuilt, unscrolled/unselected
+    // state and then jumps to the right row a moment later, which is visible
+    // as a flash on every edit.
     if (!ListBoxAddToModelGroup->IsEmpty()) {
         if (spam < ListBoxAddToModelGroup->GetItemCount()) {
             ListBoxAddToModelGroup->EnsureVisible(spam);
@@ -644,6 +645,9 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     _lastFirstSelectedModelIndex = -1;
     _lastFirstSelectedModelInGroupIndex = -1;
+
+    ListBoxModelsInGroup->Thaw();
+    ListBoxAddToModelGroup->Thaw();
 
     ListBoxAddToModelGroup->Refresh();
     ListBoxModelsInGroup->Refresh();
@@ -760,6 +764,11 @@ void ModelGroupPanel::OnButtonUpClick(wxCommandEvent& event)
             break;
         }
     }
+    // MoveSelectedModelsTo's own SaveGroupChanges() triggers a tree refresh that
+    // reselects this group (see LayoutPanel::ModelGroupUpdated), which calls
+    // UpdatePanel() again and uses this to restore the moved model's selection -
+    // same pattern as OnButtonAddToModelGroupClick/OnButtonRemoveFromModelGroupClick.
+    _lastFirstSelectedModelInGroupIndex = selected;
     MoveSelectedModelsTo(selected);
 }
 
@@ -785,11 +794,54 @@ void ModelGroupPanel::OnButtonDownClick(wxCommandEvent& event)
         }
     }
 
+    // MoveSelectedModelsTo deletes the selected run before reinserting it, so
+    // the items shift left by their own count before landing back at
+    // indexTo - the first selected item's actual resting index is therefore
+    // selected + 1, not unselected (which is indexTo itself, pre-shift).
+    _lastFirstSelectedModelInGroupIndex = selected + 1;
     MoveSelectedModelsTo(unselected);
 }
 
 void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
 {
+    // Re-entrancy guard: this ends up calling UpdatePanel() again (via
+    // LayoutPanel::ModelGroupUpdated -> SelectModelInTree), which
+    // programmatically Set*()s the very controls whose change handlers call
+    // SaveGroupChanges(). If one of those fires its event on a programmatic
+    // set (seen on MSW for some native controls), this would otherwise
+    // recurse without bound.
+    if (_savingGroupChanges) return;
+    _savingGroupChanges = true;
+    // Freeze this panel AND its ancestors up through LayoutPanel's private
+    // "ModelGroupWindow"/"SettingsPaneContainer" (2 levels up - not nameable
+    // here, both are private members of LayoutPanel), for the same round
+    // trip: SaveGroupChanges -> LayoutPanel::ModelGroupUpdated ->
+    // SelectModelInTree -> HandleSelectionChanged re-enters UpdatePanel(),
+    // which Freezes/Thaws only ListBoxModelsInGroup/ListBoxAddToModelGroup.
+    // This panel (model_grp_panel) is hosted inside LayoutPanel's
+    // "ModelGroupWindow" wxScrolledWindow, itself a child of
+    // "SettingsPaneContainer" - freezing only `this` suppresses repaint of
+    // its own children but NOT of those two ancestors, and a wxScrolledWindow
+    // is prone to repainting (erasing) its whole client area when a child's
+    // layout/size changes, which is exactly what every sibling control resize
+    // here does. That's what was still visible as the whole Group Settings
+    // pane flashing blank on every up/down/add/remove even with `this`
+    // frozen. Freeze() recurses to children, so freezing each ancestor also
+    // covers everything already covered by freezing `this`.
+    std::vector<wxWindow*> toFreeze;
+    for (wxWindow* w = this; w != nullptr && !w->IsTopLevel() && toFreeze.size() < 3; w = w->GetParent()) {
+        toFreeze.push_back(w);
+    }
+    for (auto* w : toFreeze) w->Freeze();
+    struct ScopeGuard {
+        std::vector<wxWindow*> windows;
+        bool& flag;
+        ~ScopeGuard() {
+            flag = false;
+            for (auto* w : windows) w->Thaw();
+        }
+    } guard{ toFreeze, _savingGroupChanges };
+
     ModelGroup *g = (ModelGroup*)mModels[mGroup];
 
     if (g == nullptr) return;

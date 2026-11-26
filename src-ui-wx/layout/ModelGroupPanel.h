@@ -146,6 +146,13 @@ private:
 	std::string mGroup;
 	bool _dragRowModel = false;
 	bool _dragRowNonModel = false;
+	// SaveGroupChanges() -> LayoutPanel::ModelGroupUpdated() -> SelectModelInTree()
+	// re-enters UpdatePanel(), which programmatically Set*()s several controls
+	// (size/offset spin, layout choice, colour picker, camera choice) whose
+	// change handlers call SaveGroupChanges() again; on MSW some of those
+	// native controls fire their change notification even for a programmatic
+	// Set*(), so without this guard that is unbounded recursion.
+	bool _savingGroupChanges = false;
 
 	//(*Handlers(ModelGroupPanel)
 	void OnButtonAddToModelGroupClick(wxCommandEvent& event);
