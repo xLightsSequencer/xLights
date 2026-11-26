@@ -1100,31 +1100,10 @@ void xLightsFrame::StepSequenceFrame(int direction)
     const int markerMS = timeline->GetCurrentPlayMarkerMS();
     const int currentMS = paused && markerMS >= 0 ? markerMS : timeline->GetSelectedPositionStartMS();
     const int frame = std::clamp(std::max(0, currentMS) / frameMS + direction, 0, frameCount - 1);
-    const int targetMS = frame * frameMS;
-
-    if (paused) {
-        playOffsetTime = targetMS - playStartTime;
-        const long elapsed = (wxDateTime::UNow() - starttime).GetMilliseconds().ToLong();
-        const long playbackTime = playAnimation ? static_cast<long>(elapsed * playSpeed) : elapsed;
-        playStartMS = playbackTime - playOffsetTime;
-        if (targetMS >= playEndTime) {
-            playEndTime = CurrentSeqXmlFile->GetSequenceDurationMS();
-        }
-        if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-            if (auto* audio = GetPlaybackAudio()) {
-                audio->Seek(targetMS);
-            }
-        }
-    } else {
-        timeline->SetSelectedPositionStartMS(targetMS);
-    }
-
-    timeline->EnsureTimeVisible(targetMS, targetMS);
-    timeline->SetPlayMarkerMS(targetMS);
-    mainSequencer->PanelWaveForm->UpdatePlayMarker();
-    mainSequencer->PanelEffectGrid->ForceRefresh();
-    _housePreviewPanel->SetPositionFrames(frame);
-    RenderScrubFrame(targetMS, frame);
+    wxCommandEvent seekEvent(EVT_TIME_SELECTED);
+    seekEvent.SetEventObject(mainSequencer);
+    seekEvent.SetInt(frame * frameMS);
+    TimeSelected(seekEvent);
 }
 
 void xLightsFrame::RenderScrubFrame(int ms, int frame)
@@ -1185,8 +1164,56 @@ void xLightsFrame::Scroll( wxCommandEvent& event)
 
 void xLightsFrame::TimeSelected( wxCommandEvent& event)
 {
-    mainSequencer->PanelTimeLine->SetSelectedPositionStartMS(event.GetInt());
-    mainSequencer->PanelWaveForm->Refresh();
+    auto* timeline = mainSequencer->PanelTimeLine;
+    const auto* source = event.GetEventObject();
+    const bool clicked = source == timeline || source == mainSequencer->PanelWaveForm;
+    if (!clicked && source != mainSequencer) {
+        timeline->SetSelectedPositionStartMS(event.GetInt());
+        mainSequencer->PanelWaveForm->Refresh();
+        return;
+    }
+
+    const int frameMS = static_cast<int>(_seqData.FrameTime());
+    const int frameCount = static_cast<int>(_seqData.NumFrames());
+    if (CurrentSeqXmlFile == nullptr || mRendering || frameMS <= 0 || frameCount <= 0) {
+        return;
+    }
+
+    if (playType == PLAY_TYPE_MODEL) {
+        PauseSequence(event);
+    } else if (playType == PLAY_TYPE_EFFECT || playType == PLAY_TYPE_EFFECT_PAUSED) {
+        DoStopSequence();
+    }
+    const bool paused = playType == PLAY_TYPE_MODEL_PAUSED;
+    const int timeMS = std::max(0, event.GetInt());
+    const int nearestFrame = timeMS / frameMS + (timeMS % frameMS >= (frameMS + 1) / 2 ? 1 : 0);
+    const int frame = std::min(nearestFrame, frameCount - 1);
+    const int targetMS = frame * frameMS;
+
+    if (paused) {
+        playOffsetTime = targetMS - playStartTime;
+        const long elapsed = (wxDateTime::UNow() - starttime).GetMilliseconds().ToLong();
+        const long playbackTime = playAnimation ? static_cast<long>(elapsed * playSpeed) : elapsed;
+        playStartMS = playbackTime - playOffsetTime;
+        if (targetMS >= playEndTime) {
+            playEndTime = CurrentSeqXmlFile->GetSequenceDurationMS();
+        }
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+            if (auto* audio = GetPlaybackAudio()) {
+                audio->Seek(targetMS);
+            }
+        }
+    }
+    if (!paused || clicked) {
+        timeline->SetSelectedPositionStartMS(targetMS);
+    }
+
+    timeline->EnsureTimeVisible(targetMS, targetMS);
+    timeline->SetPlayMarkerMS(targetMS);
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    _housePreviewPanel->SetPositionFrames(frame);
+    RenderScrubFrame(targetMS, frame);
 }
 
 void xLightsFrame::MousePositionUpdated( wxCommandEvent& event)
@@ -2186,10 +2213,25 @@ void xLightsFrame::SetAudioControls()
 
 void xLightsFrame::TogglePlay(wxCommandEvent& event)
 {
-    if( playType == PLAY_TYPE_MODEL )
-    {
-        wxCommandEvent playEvent(EVT_STOP_SEQUENCE);
-        wxPostEvent(this, playEvent);
+    if (playType == PLAY_TYPE_MODEL && CurrentSeqXmlFile != nullptr) {
+        auto* timeline = mainSequencer->PanelTimeLine;
+        const int startTime = playStartTime;
+        const int endTime = playEndTime;
+        const bool restoreRange = endTime > startTime &&
+            (endTime < CurrentSeqXmlFile->GetSequenceDurationMS() ||
+             timeline->GetSelectedPositionEndMS() == endTime);
+
+        DoStopSequence();
+
+        wxCommandEvent seekEvent(EVT_TIME_SELECTED);
+        seekEvent.SetEventObject(mainSequencer);
+        seekEvent.SetInt(startTime);
+        TimeSelected(seekEvent);
+
+        if (restoreRange) {
+            timeline->SetSelectedPositionEndMS(endTime);
+            mainSequencer->PanelWaveForm->Refresh(false);
+        }
     }
     else if( playType == PLAY_TYPE_MODEL_PAUSED )
     {
