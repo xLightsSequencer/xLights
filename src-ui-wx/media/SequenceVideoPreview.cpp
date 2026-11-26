@@ -80,7 +80,21 @@ void SequenceVideoPreview::Render( VideoFrame *frame )
             _texture->UpdateData(ctx, frame->nativeHandle, "vt");
             break;
     }
-    ctx->drawTexture(_texture, 0, 0, mWindowWidth, mWindowHeight );
+    // Fit the frame inside the window keeping its aspect ratio; the cleared
+    // background shows as bars on the unused sides.
+    float drawWidth = mWindowWidth;
+    float drawHeight = mWindowHeight;
+    if (frame->width > 0 && frame->height > 0 && mWindowWidth > 0 && mWindowHeight > 0) {
+        float frameAspect = (float)frame->width / (float)frame->height;
+        if ((float)mWindowWidth / (float)mWindowHeight > frameAspect) {
+            drawWidth = mWindowHeight * frameAspect;
+        } else {
+            drawHeight = mWindowWidth / frameAspect;
+        }
+    }
+    float x = (mWindowWidth - drawWidth) / 2.0f;
+    float y = (mWindowHeight - drawHeight) / 2.0f;
+    ctx->drawTexture(_texture, x, y, x + drawWidth, y + drawHeight);
     FinishDrawing(ctx);
 }
 
