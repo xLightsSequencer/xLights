@@ -770,6 +770,9 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                     jukeboxPanel->PlayItem(5);
                 }
             }
+            else if (type == "PREVIOUS_FRAME" || type == "NEXT_FRAME") {
+                xLightsApp::GetFrame()->StepSequenceFrame(type == "PREVIOUS_FRAME" ? -1 : 1);
+            }
             else if (type == "NEXT_TAG") {
                 PanelTimeLine->GoToNextTag();
             }

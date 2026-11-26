@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
+    -enh (Upercat)               Sequencer: press comma or period to step backward or forward one frame (#7432)
     -bug (derwin12)              Link controller upload preference changes are saved again
     -enh (dkulp)                 Live collaboration (beta, off by default): host or join a session on the local
                                  network and edit one sequence together (File > Collaborate)

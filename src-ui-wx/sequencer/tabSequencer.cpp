@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <chrono>
 #include <atomic>
 #include <filesystem>
@@ -1069,26 +1070,73 @@ void xLightsFrame::Zoom(wxCommandEvent& event)
 
 void xLightsFrame::Scrub(wxCommandEvent& event)
 {
+    if (CurrentSeqXmlFile == nullptr || _seqData.FrameTime() == 0 || _seqData.NumFrames() == 0) {
+        return;
+    }
+
     // stop any playing so we can scrub
     playType = PLAY_TYPE_STOPPED;
 
-    int ms = event.GetInt();
-    if (ms < 0) ms = 0;
-    unsigned int frame = ms / CurrentSeqXmlFile->GetFrameMS();
+    const int ms = std::clamp(event.GetInt(), 0, CurrentSeqXmlFile->GetSequenceDurationMS());
+    const int frame = std::min(ms / static_cast<int>(_seqData.FrameTime()), static_cast<int>(_seqData.NumFrames()) - 1);
+    RenderScrubFrame(ms, frame);
+}
 
-    if (ms > CurrentSeqXmlFile->GetSequenceDurationMS()) ms = CurrentSeqXmlFile->GetSequenceDurationMS();
-    if (frame >= _seqData.NumFrames()) frame = _seqData.NumFrames();
+void xLightsFrame::StepSequenceFrame(int direction)
+{
+    if (CurrentSeqXmlFile == nullptr || mRendering || (playType != PLAY_TYPE_STOPPED && playType != PLAY_TYPE_MODEL_PAUSED)) {
+        return;
+    }
 
+    const int frameMS = static_cast<int>(_seqData.FrameTime());
+    const int frameCount = static_cast<int>(_seqData.NumFrames());
+    if (frameMS <= 0 || frameCount <= 0) {
+        return;
+    }
+
+    auto* timeline = mainSequencer->PanelTimeLine;
+    const bool paused = playType == PLAY_TYPE_MODEL_PAUSED;
+    const int markerMS = timeline->GetCurrentPlayMarkerMS();
+    const int currentMS = paused && markerMS >= 0 ? markerMS : timeline->GetSelectedPositionStartMS();
+    const int frame = std::clamp(std::max(0, currentMS) / frameMS + direction, 0, frameCount - 1);
+    const int targetMS = frame * frameMS;
+
+    if (paused) {
+        playOffsetTime = targetMS - playStartTime;
+        const long elapsed = (wxDateTime::UNow() - starttime).GetMilliseconds().ToLong();
+        const long playbackTime = playAnimation ? static_cast<long>(elapsed * playSpeed) : elapsed;
+        playStartMS = playbackTime - playOffsetTime;
+        if (targetMS >= playEndTime) {
+            playEndTime = CurrentSeqXmlFile->GetSequenceDurationMS();
+        }
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
+            if (auto* audio = GetPlaybackAudio()) {
+                audio->Seek(targetMS);
+            }
+        }
+    } else {
+        timeline->SetSelectedPositionStartMS(targetMS);
+    }
+
+    timeline->EnsureTimeVisible(targetMS, targetMS);
+    timeline->SetPlayMarkerMS(targetMS);
+    mainSequencer->PanelWaveForm->UpdatePlayMarker();
+    mainSequencer->PanelEffectGrid->ForceRefresh();
+    _housePreviewPanel->SetPositionFrames(frame);
+    RenderScrubFrame(targetMS, frame);
+}
+
+void xLightsFrame::RenderScrubFrame(int ms, int frame)
+{
     for (auto &f : _fps) {
         f = -1;
     }
     playCurFrame = -1;
     mainSequencer->UpdateTimeDisplay(ms, _fps);
 
-    // update any video diaplay
     sequenceVideoPanel->UpdateVideo(ms);
 
-    //have the frame, copy from SeqData
+    // have the frame, copy from SeqData
     TimerOutput(frame);
     if (playModel != nullptr && !AllModels.IsModelValid(playModel)) {
         playModel = nullptr;
