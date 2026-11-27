@@ -13,7 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.22  November ??, 2026
     -enh (scott)                 Color preferences for the Import Effects compare previews (background, vendor model,
                                  your model and the rest of the model) so they can be made visible in dark mode
-    -bug (Scott)                 Fix the model group editor flashing blank when moving/adding/removing
+    -bug (scott)                 Fix the model group editor flashing blank when moving/adding/removing
                                  models in a group
     -bug (derwin12)              Link controller upload preference changes are saved again
     -bug (derwin12)              Batch Render's Last Render Date shows the right date for sequences in show
