@@ -84,7 +84,7 @@ void MediaCacheEntry::LoadRawFromFile(const std::string& path) {
     // otherwise the file is opened relative to the working directory.
     const std::string resolved = FileUtils::FixFile("", path);
     const std::string filepath = resolved.empty() ? path : resolved;
-    _diskPath = filepath;
+    _resolvedPath = filepath;
     bool accessOK = ObtainAccessToURL(filepath);
     bool exists = FileExists(filepath, true);
     std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
@@ -166,7 +166,7 @@ bool MediaCacheEntry::SaveToFile(const std::string& path) const {
 }
 
 void MediaCacheEntry::RecordFileTimestamp() {
-    const std::string& path = _diskPath.empty() ? _filePath : _diskPath;
+    const std::string& path = _resolvedPath.empty() ? _filePath : _resolvedPath;
     if (!path.empty()) {
         std::error_code ec;
         _fileTimestamp = std::filesystem::last_write_time(path, ec);
@@ -179,7 +179,7 @@ bool MediaCacheEntry::HasFileChanged() const {
         return false;
     }
     std::error_code ec;
-    auto current = std::filesystem::last_write_time(_diskPath.empty() ? _filePath : _diskPath, ec);
+    auto current = std::filesystem::last_write_time(_resolvedPath.empty() ? _filePath : _resolvedPath, ec);
     if (ec) return false;
     return current != _fileTimestamp;
 }
@@ -1818,7 +1818,6 @@ void VideoMediaCacheEntry::Load() {
         // current show/media folders.
         std::string resolved = FileUtils::FixFile("", _filePath);
         _resolvedPath = resolved.empty() ? _filePath : resolved;
-        _diskPath = _resolvedPath;
         RecordFileTimestamp();
         _loadingDone = true;
     }

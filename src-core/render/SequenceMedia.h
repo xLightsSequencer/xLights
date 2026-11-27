@@ -106,7 +106,7 @@ public:
 
     MediaType GetType() const { return _type; }
     const std::string& GetFilePath() const { return _filePath; }
-    void SetFilePath(const std::string& path) { _filePath = path; _diskPath.clear(); }
+    void SetFilePath(const std::string& path) { _filePath = path; }
     const std::string& GetEmbeddedData() const { return _embeddedData; }
     bool IsEmbedded() const { return _isEmbedded; }
     virtual bool IsEmbeddable() const { return true; }
@@ -163,7 +163,7 @@ protected:
 
     MediaType _type;
     std::string _filePath;
-    std::string _diskPath;          // where _filePath was found on disk (FixFile-resolved); empty until read
+    std::string _resolvedPath;      // where _filePath was found on disk (FixFile-resolved); empty until loaded
     std::string _embeddedData;      // Base64 encoded data
     std::atomic_bool _used;
     std::atomic_bool _usedByMetadata{false};
@@ -426,7 +426,6 @@ public:
     void SaveToXml(pugi::xml_node& parent) const override;
 
 private:
-    std::string _resolvedPath;
     std::shared_ptr<xlImage> _thumbnail;
     int _thumbW = 0, _thumbH = 0;
     // -1 sentinel: not yet probed. 0: probed and failed. >0: duration.
