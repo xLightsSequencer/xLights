@@ -13,235 +13,245 @@
 					<growablerows>1</growablerows>
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer6" member="no">
-							<cols>2</cols>
-							<growablecols>1</growablecols>
+							<cols>1</cols>
+							<growablecols>0</growablecols>
 							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
-									<label>Model Group Name:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT6" variable="LabelModelGroupName" member="yes">
-									<label>&lt;group name&gt;</label>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
-									<label>Default Layout Mode:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceModelLayoutType" member="yes">
-									<content>
-										<item>Grid as per preview</item>
-										<item>Minimal Grid</item>
-										<item>Horizontal Stack</item>
-										<item>Vertical Stack</item>
-										<item>Horizontal Stack - Scaled</item>
-										<item>Vertical Stack - Scaled</item>
-										<item>Horizontal Per Model</item>
-										<item>Vertical Per Model</item>
-										<item>Horizontal Per Model/Strand</item>
-										<item>Vertical Per Model/Strand</item>
-										<item>Single Line</item>
-										<item>Overlay - Centered</item>
-										<item>Overlay - Scaled</item>
-										<item>Single Line Model As A Pixel</item>
-										<item>Default Model As A Pixel</item>
-									</content>
-									<selection>0</selection>
-									<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
-									<label>Default Camera:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE2" variable="Choice_DefaultCamera" member="yes">
-									<handler function="OnChoice_DefaultCameraSelect" entry="EVT_CHOICE" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT4" variable="GridSizeLabel" member="yes">
-									<label>Max Grid Size:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SizeSpinCtrl" member="yes">
-									<value>400</value>
-									<min>10</min>
-									<max>4000</max>
-									<handler function="OnSizeSpinCtrlChange" entry="EVT_SPINCTRL" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="wxID_ANY" variable="StaticText6" member="no">
-									<label>Preview:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxChoice" name="ID_CHOICE_PREVIEWS" variable="ChoicePreviews" member="yes">
-									<selection>0</selection>
-									<handler function="OnChoicePreviewsSelect" entry="EVT_CHOICE" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
-									<label>Center Offset:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
-									<cols>4</cols>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
-											<label>X</label>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_XCentreOffset" member="yes">
-											<value>0</value>
-											<min>-5000</min>
-											<max>5000</max>
-											<handler function="OnSpinCtrl_XCentreOffsetChange" entry="EVT_SPINCTRL" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
-											<label>Y</label>
-										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_YCentreOffset" member="yes">
-											<value>0</value>
-											<min>-5000</min>
-											<max>5000</max>
-											<handler function="OnSpinCtrl_YCentreOffsetChange" entry="EVT_SPINCTRL" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>2</border>
-										<option>1</option>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
-									<label>Tag Color:</label>
-								</object>
-								<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer7" member="no">
 									<cols>3</cols>
+									<growablecols>1</growablecols>
 									<object class="sizeritem">
-										<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_MG_TAGCOLOUR" variable="ColourPickerCtrl_ModelGroupTagColour" member="yes">
-											<colour>#000000</colour>
-											<handler function="OnColourPickerCtrl_ModelGroupTagColourColourChanged" entry="EVT_COLOURPICKER_CHANGED" />
+										<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+											<label>Name:</label>
 										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 									<object class="sizeritem">
-										<object class="wxButton" name="ID_BUTTON2" variable="ButtonAliases" member="yes">
-											<label>Aliases</label>
-											<handler function="OnButtonAliasesClick" entry="EVT_BUTTON" />
+										<object class="wxTextCtrl" name="ID_TEXTCTRL_GROUPNAME" variable="TextCtrl_ModelGroupName" member="yes">
+											<style>wxTE_PROCESS_ENTER</style>
+											<handler function="OnTextCtrl_ModelGroupNameEnter" entry="EVT_TEXT_ENTER" />
 										</object>
-										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer5" member="no">
+											<cols>3</cols>
+											<object class="sizeritem">
+												<object class="wxColourPickerCtrl" name="ID_COLOURPICKERCTRL_MG_TAGCOLOUR" variable="ColourPickerCtrl_ModelGroupTagColour" member="yes">
+													<colour>#000000</colour>
+													<tooltip>Tag Color</tooltip>
+													<handler function="OnColourPickerCtrl_ModelGroupTagColourColourChanged" entry="EVT_COLOURPICKER_CHANGED" />
+												</object>
+												<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON2" variable="ButtonAliases" member="yes">
+													<label>Aliases</label>
+													<handler function="OnButtonAliasesClick" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxEXPAND</flag>
+										<border>0</border>
+										<option>1</option>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="FlexGridSizer8" member="no">
+									<cols>2</cols>
+									<growablecols>1</growablecols>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticText4" member="no">
+											<label>Default Layout Mode:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE1" variable="ChoiceModelLayoutType" member="yes">
+											<content>
+												<item>Grid as per preview</item>
+												<item>Minimal Grid</item>
+												<item>Horizontal Stack</item>
+												<item>Vertical Stack</item>
+												<item>Horizontal Stack - Scaled</item>
+												<item>Vertical Stack - Scaled</item>
+												<item>Horizontal Per Model</item>
+												<item>Vertical Per Model</item>
+												<item>Horizontal Per Model/Strand</item>
+												<item>Vertical Per Model/Strand</item>
+												<item>Single Line</item>
+												<item>Overlay - Centered</item>
+												<item>Overlay - Scaled</item>
+												<item>Single Line Model As A Pixel</item>
+												<item>Default Model As A Pixel</item>
+											</content>
+											<selection>0</selection>
+											<handler function="OnChoiceModelLayoutTypeSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT12" variable="StaticText12" member="yes">
+											<label>Default Camera:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE2" variable="Choice_DefaultCamera" member="yes">
+											<handler function="OnChoice_DefaultCameraSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT4" variable="GridSizeLabel" member="yes">
+											<label>Max Grid Size:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxSpinCtrl" name="ID_SPINCTRL1" variable="SizeSpinCtrl" member="yes">
+											<value>400</value>
+											<min>10</min>
+											<max>4000</max>
+											<handler function="OnSizeSpinCtrlChange" entry="EVT_SPINCTRL" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticText6" member="no">
+											<label>Preview:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxChoice" name="ID_CHOICE_PREVIEWS" variable="ChoicePreviews" member="yes">
+											<selection>0</selection>
+											<handler function="OnChoicePreviewsSelect" entry="EVT_CHOICE" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+											<label>Center Offset:</label>
+										</object>
+										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxFlexGridSizer" variable="FlexGridSizer4" member="no">
+											<cols>4</cols>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT10" variable="StaticText10" member="yes">
+													<label>X</label>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSpinCtrl" name="ID_SPINCTRL2" variable="SpinCtrl_XCentreOffset" member="yes">
+													<value>0</value>
+													<min>-5000</min>
+													<max>5000</max>
+													<handler function="OnSpinCtrl_XCentreOffsetChange" entry="EVT_SPINCTRL" />
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="ID_STATICTEXT11" variable="StaticText11" member="yes">
+													<label>Y</label>
+												</object>
+												<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+												<border>5</border>
+												<option>1</option>
+											</object>
+											<object class="sizeritem">
+												<object class="wxSpinCtrl" name="ID_SPINCTRL3" variable="SpinCtrl_YCentreOffset" member="yes">
+													<value>0</value>
+													<min>-5000</min>
+													<max>5000</max>
+													<handler function="OnSpinCtrl_YCentreOffsetChange" entry="EVT_SPINCTRL" />
+												</object>
+												<flag>wxALL|wxEXPAND</flag>
+												<border>2</border>
+												<option>1</option>
+											</object>
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_ShowSubmodels" member="yes">
+											<label>Show SubModels to Add</label>
+											<checked>1</checked>
+											<handler function="OnCheckBox_ShowSubmodelsClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_ShowInactiveModels" member="yes">
+											<label>Show Inactive Models to Add</label>
+											<handler function="OnCheckBox_ShowInactiveModelsClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_ShowModelGroups" member="yes">
+											<label>Show Model Groups to Add</label>
+											<checked>1</checked>
+											<handler function="OnCheckBox_ShowModelGroupsClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>2</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_ShowOnlyModelsInCurrentView" member="yes">
+											<label>Show Only Models In Current View</label>
+											<checked>1</checked>
+											<handler function="OnCheckBox_ShowOnlyModelsInCurrentViewClick" entry="EVT_CHECKBOX" />
+										</object>
+										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
 										<option>1</option>
 									</object>
 								</object>
 								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_ShowSubmodels" member="yes">
-									<label>Show SubModels to Add</label>
-									<checked>1</checked>
-									<handler function="OnCheckBox_ShowSubmodelsClick" entry="EVT_CHECKBOX" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX3" variable="CheckBox_ShowInactiveModels" member="yes">
-									<label>Show Inactive Models to Add</label>
-									<handler function="OnCheckBox_ShowInactiveModelsClick" entry="EVT_CHECKBOX" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX2" variable="CheckBox_ShowModelGroups" member="yes">
-									<label>Show Model Groups to Add</label>
-									<checked>1</checked>
-									<handler function="OnCheckBox_ShowModelGroupsClick" entry="EVT_CHECKBOX" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>2</border>
-								<option>1</option>
-							</object>
-							<object class="sizeritem">
-								<object class="wxCheckBox" name="ID_CHECKBOX4" variable="CheckBox_ShowOnlyModelsInCurrentView" member="yes">
-									<label>Show Only Models In Current View</label>
-									<checked>1</checked>
-									<handler function="OnCheckBox_ShowOnlyModelsInCurrentViewClick" entry="EVT_CHECKBOX" />
-								</object>
-								<flag>wxALL|wxEXPAND</flag>
-								<border>5</border>
 								<option>1</option>
 							</object>
 						</object>

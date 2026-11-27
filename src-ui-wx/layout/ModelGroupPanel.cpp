@@ -90,7 +90,7 @@ public:
 
 //(*IdInit(ModelGroupPanel)
 const wxWindowID ModelGroupPanel::ID_STATICTEXT5 = wxNewId();
-const wxWindowID ModelGroupPanel::ID_STATICTEXT6 = wxNewId();
+const wxWindowID ModelGroupPanel::ID_TEXTCTRL_GROUPNAME = wxNewId();
 const wxWindowID ModelGroupPanel::ID_CHOICE1 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_STATICTEXT12 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_CHOICE2 = wxNewId();
@@ -102,7 +102,6 @@ const wxWindowID ModelGroupPanel::ID_STATICTEXT10 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_SPINCTRL2 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_STATICTEXT11 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_SPINCTRL3 = wxNewId();
-const wxWindowID ModelGroupPanel::ID_STATICTEXT8 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_COLOURPICKERCTRL_MG_TAGCOLOUR = wxNewId();
 const wxWindowID ModelGroupPanel::ID_BUTTON2 = wxNewId();
 const wxWindowID ModelGroupPanel::ID_CHECKBOX1 = wxNewId();
@@ -146,6 +145,8 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	wxFlexGridSizer* FlexGridSizer4;
 	wxFlexGridSizer* FlexGridSizer5;
 	wxFlexGridSizer* FlexGridSizer6;
+	wxFlexGridSizer* FlexGridSizer7;
+	wxFlexGridSizer* FlexGridSizer8;
 	wxStaticText* StaticText4;
 	wxStaticText* StaticText6;
 
@@ -156,14 +157,26 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(1);
-	FlexGridSizer6 = new wxFlexGridSizer(0, 2, 0, 0);
-	FlexGridSizer6->AddGrowableCol(1);
-	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Model Group Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
-	FlexGridSizer6->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-	LabelModelGroupName = new wxStaticText(this, ID_STATICTEXT6, _("<group name>"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT6"));
-	FlexGridSizer6->Add(LabelModelGroupName, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer6->AddGrowableCol(0);
+	FlexGridSizer7 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer7->AddGrowableCol(1);
+	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("Name:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
+	FlexGridSizer7->Add(StaticText5, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	TextCtrl_ModelGroupName = new wxTextCtrl(this, ID_TEXTCTRL_GROUPNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_TEXTCTRL_GROUPNAME"));
+	FlexGridSizer7->Add(TextCtrl_ModelGroupName, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
+	ColourPickerCtrl_ModelGroupTagColour = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_MG_TAGCOLOUR"));
+	ColourPickerCtrl_ModelGroupTagColour->SetToolTip(_("Tag Color"));
+	FlexGridSizer5->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	ButtonAliases = new wxButton(this, ID_BUTTON2, _("Aliases"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
+	FlexGridSizer5->Add(ButtonAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer7->Add(FlexGridSizer5, 1, wxEXPAND, 0);
+	FlexGridSizer6->Add(FlexGridSizer7, 1, wxALL|wxEXPAND, 0);
+	FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
+	FlexGridSizer8->AddGrowableCol(1);
 	StaticText4 = new wxStaticText(this, wxID_ANY, _("Default Layout Mode:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer6->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(StaticText4, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoiceModelLayoutType = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE1"));
 	ChoiceModelLayoutType->SetSelection( ChoiceModelLayoutType->Append(_("Grid as per preview")) );
 	ChoiceModelLayoutType->Append(_("Minimal Grid"));
@@ -181,22 +194,22 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Per Model Default"));
-	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
-	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	Choice_DefaultCamera = new wxChoice(this, ID_CHOICE2, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE2"));
-	FlexGridSizer6->Add(Choice_DefaultCamera, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(Choice_DefaultCamera, 1, wxALL|wxEXPAND, 5);
 	GridSizeLabel = new wxStaticText(this, ID_STATICTEXT4, _("Max Grid Size:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT4"));
-	FlexGridSizer6->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(GridSizeLabel, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	SizeSpinCtrl = new wxSpinCtrl(this, ID_SPINCTRL1, _T("400"), wxDefaultPosition, wxDefaultSize, 0, 10, 4000, 400, _T("ID_SPINCTRL1"));
 	SizeSpinCtrl->SetValue(_T("400"));
-	FlexGridSizer6->Add(SizeSpinCtrl, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8->Add(SizeSpinCtrl, 1, wxALL|wxEXPAND, 2);
 	StaticText6 = new wxStaticText(this, wxID_ANY, _("Preview:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
-	FlexGridSizer6->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer8->Add(StaticText6, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 	ChoicePreviews = new wxChoice(this, ID_CHOICE_PREVIEWS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PREVIEWS"));
-	FlexGridSizer6->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8->Add(ChoicePreviews, 1, wxALL|wxEXPAND, 2);
 	StaticText7 = new wxStaticText(this, ID_STATICTEXT7, _("Center Offset:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT7"));
-	FlexGridSizer6->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
+	FlexGridSizer8->Add(StaticText7, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
 	FlexGridSizer4 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText10 = new wxStaticText(this, ID_STATICTEXT10, _("X"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT10"));
 	FlexGridSizer4->Add(StaticText10, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -208,27 +221,20 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	SpinCtrl_YCentreOffset = new wxSpinCtrl(this, ID_SPINCTRL3, _T("0"), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER, -5000, 5000, 0, _T("ID_SPINCTRL3"));
 	SpinCtrl_YCentreOffset->SetValue(_T("0"));
 	FlexGridSizer4->Add(SpinCtrl_YCentreOffset, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer6->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
-	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Tag Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
-	FlexGridSizer6->Add(StaticText8, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 2);
-	FlexGridSizer5 = new wxFlexGridSizer(0, 3, 0, 0);
-	ColourPickerCtrl_ModelGroupTagColour = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL_MG_TAGCOLOUR"));
-	FlexGridSizer5->Add(ColourPickerCtrl_ModelGroupTagColour, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-	ButtonAliases = new wxButton(this, ID_BUTTON2, _("Aliases"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
-	FlexGridSizer5->Add(ButtonAliases, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	FlexGridSizer6->Add(FlexGridSizer5, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowSubmodels = new wxCheckBox(this, ID_CHECKBOX1, _("Show SubModels to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
 	CheckBox_ShowSubmodels->SetValue(true);
-	FlexGridSizer6->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8->Add(CheckBox_ShowSubmodels, 1, wxALL|wxEXPAND, 2);
 	CheckBox_ShowInactiveModels = new wxCheckBox(this, ID_CHECKBOX3, _("Show Inactive Models to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX3"));
 	CheckBox_ShowInactiveModels->SetValue(false);
-	FlexGridSizer6->Add(CheckBox_ShowInactiveModels, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(CheckBox_ShowInactiveModels, 1, wxALL|wxEXPAND, 5);
 	CheckBox_ShowModelGroups = new wxCheckBox(this, ID_CHECKBOX2, _("Show Model Groups to Add"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX2"));
 	CheckBox_ShowModelGroups->SetValue(true);
-	FlexGridSizer6->Add(CheckBox_ShowModelGroups, 1, wxALL|wxEXPAND, 2);
+	FlexGridSizer8->Add(CheckBox_ShowModelGroups, 1, wxALL|wxEXPAND, 2);
 	CheckBox_ShowOnlyModelsInCurrentView = new wxCheckBox(this, ID_CHECKBOX4, _("Show Only Models In Current View"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX4"));
 	CheckBox_ShowOnlyModelsInCurrentView->SetValue(true);
-	FlexGridSizer6->Add(CheckBox_ShowOnlyModelsInCurrentView, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer8->Add(CheckBox_ShowOnlyModelsInCurrentView, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer6->Add(FlexGridSizer8, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer3->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 0);
 	FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer12->AddGrowableCol(0);
@@ -285,6 +291,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	Connect(ID_SPINCTRL3, wxEVT_COMMAND_SPINCTRL_UPDATED, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrl_YCentreOffsetChange);
 	Connect(ID_COLOURPICKERCTRL_MG_TAGCOLOUR, wxEVT_COMMAND_COLOURPICKER_CHANGED, (wxObjectEventFunction)&ModelGroupPanel::OnColourPickerCtrl_ModelGroupTagColourColourChanged);
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnButtonAliasesClick);
+	Connect(ID_TEXTCTRL_GROUPNAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_ModelGroupNameEnter);
 	Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowSubmodelsClick);
 	Connect(ID_CHECKBOX3, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowInactiveModelsClick);
 	Connect(ID_CHECKBOX2, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&ModelGroupPanel::OnCheckBox_ShowModelGroupsClick);
@@ -328,6 +335,10 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
     // So if someone regenerates this file that manual change will get lost.
     Connect(ID_SPINCTRL2, wxEVT_TEXT_ENTER, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrlTextEnter);
     Connect(ID_SPINCTRL3, wxEVT_TEXT_ENTER, (wxObjectEventFunction)&ModelGroupPanel::OnSpinCtrlTextEnter);
+
+    // wxSmith has no event-list entry for kill-focus on wxTextCtrl, so this is connected
+    // manually, like the spin ctrl ENTER handling above.
+    Connect(ID_TEXTCTRL_GROUPNAME, wxEVT_KILL_FOCUS, (wxObjectEventFunction)&ModelGroupPanel::OnTextCtrl_ModelGroupNameKillFocus);
 
     _dragRowModel = false;
     _dragRowNonModel = false;
@@ -466,7 +477,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     mModels.ResetModelGroups(); // make sure all our pointers are valid
     mGroup = group;
-    LabelModelGroupName->SetLabel(group);
+    TextCtrl_ModelGroupName->ChangeValue(group);
     ListBoxModelsInGroup->Freeze();
     ListBoxModelsInGroup->ClearAll();
     ListBoxModelsInGroup->AppendColumn("Models");
@@ -651,6 +662,15 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
 
     ListBoxAddToModelGroup->Refresh();
     ListBoxModelsInGroup->Refresh();
+
+    // The settings area above the lists is only laid out/painted here, not by
+    // whoever shows this panel (e.g. LayoutPanel::ShowPropGrid just toggles
+    // visibility and Layout()s the OUTER AUI pane container). If the first
+    // UpdatePanel() after this panel becomes visible skips this, the static
+    // labels can sit un-painted until some unrelated event (a resize) forces
+    // the OS to repaint the whole client area.
+    Layout();
+    Refresh();
 
     ValidateWindow();
 }
@@ -1596,4 +1616,41 @@ void ModelGroupPanel::OnSpinCtrlTextEnter(wxCommandEvent& evt)
 {
     wxWindow* win = dynamic_cast<wxWindow*>(evt.GetEventObject());
     win->Navigate();
+}
+
+void ModelGroupPanel::OnTextCtrl_ModelGroupNameEnter(wxCommandEvent& event)
+{
+    CommitModelGroupNameEdit();
+}
+
+void ModelGroupPanel::OnTextCtrl_ModelGroupNameKillFocus(wxFocusEvent& event)
+{
+    CommitModelGroupNameEdit();
+    event.Skip();
+}
+
+void ModelGroupPanel::CommitModelGroupNameEdit()
+{
+    std::string newName = Model::SafeModelName(TextCtrl_ModelGroupName->GetValue().ToStdString());
+    if (newName.empty() || newName == mGroup) {
+        TextCtrl_ModelGroupName->ChangeValue(mGroup);
+        return;
+    }
+
+    if (mModels.GetModel(newName) != nullptr) {
+        wxMessageBox(wxString::Format("Model or Group of name '%s' already exists.", newName), "Rename Group", wxOK | wxICON_WARNING, this);
+        TextCtrl_ModelGroupName->ChangeValue(mGroup);
+        return;
+    }
+
+    std::string oldName = mGroup;
+    xLightsApp::GetFrame()->RenameModel(oldName, newName);
+    mGroup = newName;
+
+    Model* g = mModels.GetModel(newName);
+    if (g != nullptr) {
+        g->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS | OutputModelManager::WORK_RGBEFFECTS_CHANGE | OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ModelGroupPanel::CommitModelGroupNameEdit");
+    }
+
+    UpdatePanel(newName);
 }

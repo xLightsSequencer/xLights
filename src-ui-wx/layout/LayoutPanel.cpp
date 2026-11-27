@@ -13225,15 +13225,20 @@ void LayoutPanel::ShowPropGrid(bool show) {
     // already showing. The sizer Hide()/Show() + Layout() below causes a
     // brief visible flash as it reflows, so skip it entirely when the
     // requested state already matches what's on screen.
+    wxAuiPaneInfo& ms = layout_mgr->GetPane("ModelSettings");
     if (SettingsPaneContainer != nullptr) {
+        // propertyEditor is shared with showBackgroundProperties() (captioned
+        // "Background Properties"), so visibility alone can't tell "already
+        // showing model properties" apart from "already showing background
+        // properties" - compare the caption too, or a reselect right after
+        // deselecting leaves the pane captioned for the background.
         bool alreadyInState = show
-            ? (propertyEditor->IsShown() && !ModelGroupWindow->IsShown() && !controllerProps->IsShown())
+            ? (propertyEditor->IsShown() && !ModelGroupWindow->IsShown() && !controllerProps->IsShown() && ms.caption == "Model Properties")
             : (ModelGroupWindow->IsShown() && !propertyEditor->IsShown() && !controllerProps->IsShown());
         if (alreadyInState) {
             return;
         }
     }
-    wxAuiPaneInfo& ms = layout_mgr->GetPane("ModelSettings");
     if (show) {
         if (SettingsPaneContainer != nullptr) {
             wxSizer* s = SettingsPaneContainer->GetSizer();
@@ -13255,7 +13260,7 @@ void LayoutPanel::ShowPropGrid(bool show) {
             SettingsPaneContainer->Layout();
         }
         if (ms.IsOk()) {
-            ms.Caption("Group Settings").Show();
+            ms.Caption("Model Group Properties").Show();
         }
         mPropGridActive = false;
     }

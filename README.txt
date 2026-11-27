@@ -15,6 +15,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  your model and the rest of the model) so they can be made visible in dark mode
     -bug (scott)                 Fix the model group editor flashing blank when moving/adding/removing
                                  models in a group
+    -enh (Scott)                 Model group editor: compact Group Settings layout, and the group can be
+                                 renamed directly from its Name field
     -bug (derwin12)              Link controller upload preference changes are saved again
     -bug (derwin12)              Batch Render's Last Render Date shows the right date for sequences in show
                                  subfolders when a separate FSEQ folder is set

@@ -84,7 +84,6 @@ public:
 	wxSpinCtrl* SpinCtrl_XCentreOffset;
 	wxSpinCtrl* SpinCtrl_YCentreOffset;
 	wxStaticText* GridSizeLabel;
-	wxStaticText* LabelModelGroupName;
 	wxStaticText* StaticText10;
 	wxStaticText* StaticText11;
 	wxStaticText* StaticText12;
@@ -93,16 +92,16 @@ public:
 	wxStaticText* StaticText3;
 	wxStaticText* StaticText5;
 	wxStaticText* StaticText7;
-	wxStaticText* StaticText8;
 	wxStaticText* StaticText9;
 	wxTextCtrl* TextCtrl_Filter;
+	wxTextCtrl* TextCtrl_ModelGroupName;
 	//*)
 
 protected:
 
 	//(*Identifiers(ModelGroupPanel)
 	static const wxWindowID ID_STATICTEXT5;
-	static const wxWindowID ID_STATICTEXT6;
+	static const wxWindowID ID_TEXTCTRL_GROUPNAME;
 	static const wxWindowID ID_CHOICE1;
 	static const wxWindowID ID_STATICTEXT12;
 	static const wxWindowID ID_CHOICE2;
@@ -114,7 +113,6 @@ protected:
 	static const wxWindowID ID_SPINCTRL2;
 	static const wxWindowID ID_STATICTEXT11;
 	static const wxWindowID ID_SPINCTRL3;
-	static const wxWindowID ID_STATICTEXT8;
 	static const wxWindowID ID_COLOURPICKERCTRL_MG_TAGCOLOUR;
 	static const wxWindowID ID_BUTTON2;
 	static const wxWindowID ID_CHECKBOX1;
@@ -182,6 +180,7 @@ private:
 	void OnColourPickerCtrl_ModelGroupTagColourColourChanged(wxColourPickerEvent& event);
 	void OnChoice_DefaultCameraSelect(wxCommandEvent& event);
 	void OnButtonAliasesClick(wxCommandEvent& event);
+	void OnTextCtrl_ModelGroupNameEnter(wxCommandEvent& event);
 	//*)
 
 	DECLARE_EVENT_TABLE()
@@ -205,4 +204,6 @@ private:
 	void CopyModelList();
 	wxArrayString getGroupList();
     void OnSpinCtrlTextEnter(wxCommandEvent& evt);
+    void OnTextCtrl_ModelGroupNameKillFocus(wxFocusEvent& event);
+    void CommitModelGroupNameEdit();
 };
