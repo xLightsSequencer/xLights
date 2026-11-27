@@ -578,6 +578,70 @@ TEST_CASE("Video and audio entries load from xml by path", "[seq2][media]") {
     CHECK(m.GetAudio("") == nullptr);
 }
 
+TEST_CASE("Path-only image and text entries from xml resolve against the show folder", "[seq2][media]") {
+    // #7441: a relative path stored in <SequenceMedia> was opened relative to
+    // the working directory, so Picture and Text effects could not find it.
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    fs::create_directories(d.path / "rel7441");
+    d.Write("rel7441/pic.png", Png(3, 2));
+    auto textPath = d.Write("rel7441/msg.txt", "first");
+
+    pugi::xml_document doc;
+    REQUIRE(doc.load_string("<SequenceMedia><Image path=\"rel7441/pic.png\"/><TextFile path=\"rel7441/msg.txt\"/></SequenceMedia>"));
+    SequenceMedia m;
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+
+    auto img = m.GetImage("rel7441/pic.png");
+    REQUIRE(img);
+    CHECK(img->IsOk());
+    CHECK(img->GetImageWidth() == 3);
+    CHECK_FALSE(img->IsEmbedded());
+
+    auto txt = m.GetTextFile("rel7441/msg.txt");
+    REQUIRE(txt);
+    CHECK(txt->isLoaded());
+    CHECK(txt->GetContent() == "first");
+
+    // Change detection follows the resolved file too
+    d.Write("rel7441/msg.txt", "second version");
+    Touch(textPath, 5);
+    CHECK(m.GetTextFile("rel7441/msg.txt")->GetContent() == "second version");
+}
+
+TEST_CASE("Path-only svg and shader entries from xml resolve against the show folder", "[seq2][media]") {
+    // Same path as #7441: svg and shader entries also read through LoadRawFromFile
+    TempDir d;
+    FixFileGuard g(d.path.string());
+    fs::create_directories(d.path / "rel7441b");
+    auto svgPath = d.Write("rel7441b/shape.svg", Svg(4, 2));
+    auto fsPath = d.Write("rel7441b/fx.fs", "void main(){}");
+
+    pugi::xml_document doc;
+    REQUIRE(doc.load_string("<SequenceMedia><SVG path=\"rel7441b/shape.svg\"/><Shader path=\"rel7441b/fx.fs\"/></SequenceMedia>"));
+    SequenceMedia m;
+    REQUIRE(m.LoadFromXml(doc.child("SequenceMedia")));
+
+    auto svg = m.GetSVG("rel7441b/shape.svg");
+    REQUIRE(svg);
+    CHECK(svg->isLoaded());
+    CHECK(svg->GetSVGContent() == Svg(4, 2));
+    CHECK_FALSE(svg->IsEmbedded());
+
+    auto sh = m.GetShader("rel7441b/fx.fs");
+    REQUIRE(sh);
+    CHECK(sh->isLoaded());
+    CHECK(sh->GetShaderSource() == "void main(){}");
+    CHECK_FALSE(sh->IsEmbedded());
+
+    d.Write("rel7441b/shape.svg", Svg(6, 3));
+    Touch(svgPath, 5);
+    CHECK(m.GetSVG("rel7441b/shape.svg")->GetSVGContent() == Svg(6, 3));
+    d.Write("rel7441b/fx.fs", "void main(){ /*v2*/ }");
+    Touch(fsPath, 5);
+    CHECK(m.GetShader("rel7441b/fx.fs")->GetShaderSource() == "void main(){ /*v2*/ }");
+}
+
 TEST_CASE("MarkUsedByMetadata reaches every media type", "[seq2][media]") {
     TempDir d;
     SequenceMedia m;
