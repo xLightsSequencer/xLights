@@ -62,6 +62,23 @@
 						<border>5</border>
 						<option>1</option>
 					</object>
+					<object class="sizeritem">
+						<object class="wxStaticBoxSizer" variable="StaticBoxSizer4" member="no">
+							<label>Import Compare</label>
+							<orient>wxVERTICAL</orient>
+							<object class="sizeritem">
+								<object class="wxFlexGridSizer" variable="Sizer_Import_Compare" member="yes">
+									<cols>2</cols>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
+								<option>1</option>
+							</object>
+						</object>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<option>1</option>
+					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>5</border>

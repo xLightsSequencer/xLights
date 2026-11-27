@@ -34,6 +34,7 @@ class ColorManagerSettingsPanel: public wxPanel
 		wxButton* Button_Reset;
 		wxCheckBox* CheckBox_SuppressDarkMode;
 		wxFlexGridSizer* Sizer_Effect_Grid;
+		wxFlexGridSizer* Sizer_Import_Compare;
 		wxFlexGridSizer* Sizer_Layout_Tab;
 		wxFlexGridSizer* Sizer_Timing_Tracks;
 		//*)

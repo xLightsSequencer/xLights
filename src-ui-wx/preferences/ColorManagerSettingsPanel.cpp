@@ -49,6 +49,7 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	wxStaticBoxSizer* StaticBoxSizer1;
 	wxStaticBoxSizer* StaticBoxSizer2;
 	wxStaticBoxSizer* StaticBoxSizer3;
+	wxStaticBoxSizer* StaticBoxSizer4;
 
 	Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -70,6 +71,10 @@ ColorManagerSettingsPanel::ColorManagerSettingsPanel(wxWindow* parent, xLightsFr
 	Sizer_Layout_Tab = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticBoxSizer3->Add(Sizer_Layout_Tab, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer3->Add(StaticBoxSizer3, 1, wxALL|wxEXPAND, 5);
+	StaticBoxSizer4 = new wxStaticBoxSizer(wxVERTICAL, this, _("Import Compare"));
+	Sizer_Import_Compare = new wxFlexGridSizer(0, 2, 0, 0);
+	StaticBoxSizer4->Add(Sizer_Import_Compare, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer3->Add(StaticBoxSizer4, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_SuppressDarkMode = new wxCheckBox(this, ID_CHECKBOX1, _("Suppress Dark Mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
@@ -166,6 +171,11 @@ void ColorManagerSettingsPanel::AddButtonsToDialog()
         case ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB:
             Sizer_Layout_Tab->Add(txt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
             Sizer_Layout_Tab->Add(btn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
+            break;
+
+        case ColorManager::ColorCategory::COLOR_CAT_IMPORT_COMPARE:
+            Sizer_Import_Compare->Add(txt, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 2);
+            Sizer_Import_Compare->Add(btn, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 2);
             break;
         default:
             break;
