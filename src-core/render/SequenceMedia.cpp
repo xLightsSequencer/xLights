@@ -78,7 +78,13 @@ MediaCacheEntry::MediaCacheEntry(MediaType type, const std::string& path, const 
 }
 MediaCacheEntry::~MediaCacheEntry() {}
 
-void MediaCacheEntry::LoadRawFromFile(const std::string& filepath) {
+void MediaCacheEntry::LoadRawFromFile(const std::string& path) {
+    // Entries read from <SequenceMedia> keep their stored path, which may be
+    // relative to the show folder. Resolve it the same way video entries do,
+    // otherwise the file is opened relative to the working directory.
+    const std::string resolved = FileUtils::FixFile("", path);
+    const std::string filepath = resolved.empty() ? path : resolved;
+    _resolvedPath = filepath;
     bool accessOK = ObtainAccessToURL(filepath);
     bool exists = FileExists(filepath, true);
     std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
@@ -160,9 +166,10 @@ bool MediaCacheEntry::SaveToFile(const std::string& path) const {
 }
 
 void MediaCacheEntry::RecordFileTimestamp() {
-    if (!_filePath.empty()) {
+    const std::string& path = _resolvedPath.empty() ? _filePath : _resolvedPath;
+    if (!path.empty()) {
         std::error_code ec;
-        _fileTimestamp = std::filesystem::last_write_time(_filePath, ec);
+        _fileTimestamp = std::filesystem::last_write_time(path, ec);
         // On error, _fileTimestamp stays default — HasFileChanged() will return false
     }
 }
@@ -172,7 +179,7 @@ bool MediaCacheEntry::HasFileChanged() const {
         return false;
     }
     std::error_code ec;
-    auto current = std::filesystem::last_write_time(_filePath, ec);
+    auto current = std::filesystem::last_write_time(_resolvedPath.empty() ? _filePath : _resolvedPath, ec);
     if (ec) return false;
     return current != _fileTimestamp;
 }
