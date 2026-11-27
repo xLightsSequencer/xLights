@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
-    -enh (Scott)                 Color preferences for the Import Effects compare previews (background, vendor model,
+    -enh (scott)                 Color preferences for the Import Effects compare previews (background, vendor model,
                                  your model and the rest of the model) so they can be made visible in dark mode
     -bug (Scott)                 Fix the model group editor flashing blank when moving/adding/removing
                                  models in a group
