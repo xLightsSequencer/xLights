@@ -9,6 +9,8 @@
 #include "render/SequenceFile.h"
 #include "support/TempDir.h"
 
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -640,6 +642,116 @@ TEST_CASE("xsq data layer settings round trip", "[sequence][xsq][roundtrip]") {
     REQUIRE(in.ok);
     CHECK(in.file->GetRenderMode() == SequenceFile::CANVAS_MODE);
     CHECK(in.file->GetDataLayers().GetNumLayers() == 1);
+}
+
+TEST_CASE("xsq load resolves a data layer's relative source and data paths beside the xsq", "[sequence][xsq]") {
+    TempDir td;
+    td.Write("layer.iseq", "iseq-bytes");
+    td.Write("layer.fseq", "fseq-bytes");
+    std::string body =
+        "<DataLayers><DataLayer lor_params=\"0\" channel_offset=\"0\" num_channels=\"10\" num_frames=\"20\" "
+        "data=\"layer.iseq\" source=\"layer.fseq\" name=\"Extra\"/></DataLayers>"
+        "<DisplayElements/><EffectDB/><ElementEffects/>";
+    auto p = td.Write("dl_relative.xsq", FixedPointDoc(body));
+    Loaded in(p, td.path.string());
+    REQUIRE(in.ok);
+    REQUIRE(in.file->GetDataLayers().GetNumLayers() == 2);
+    DataLayer* extra = in.file->GetDataLayers().GetDataLayer(1);
+    REQUIRE(extra != nullptr);
+    CHECK(extra->GetDataSource() == td.File("layer.iseq"));
+    CHECK(extra->GetSource() == td.File("layer.fseq"));
+}
+
+TEST_CASE("xsq load resolves a data layer's paths when the sequence is nested below the show dir", "[sequence][xsq]") {
+    // Reproduces a real show layout: Show Directory is the top level folder,
+    // but each sequence (and its rendered .iseq/.fseq companions) lives in its
+    // own subfolder several levels down - a plain show-dir-relative search
+    // never reaches a bare filename stored that deep.
+    TempDir td;
+    std::filesystem::path seqDir = td.path / "2026 Sequences" / "A Song";
+    std::error_code ec;
+    std::filesystem::create_directories(seqDir, ec);
+    REQUIRE_FALSE(ec);
+
+    std::ofstream(seqDir / "layer.iseq", std::ios::binary) << "iseq-bytes";
+    std::ofstream(seqDir / "layer.fseq", std::ios::binary) << "fseq-bytes";
+
+    std::string body =
+        "<DataLayers><DataLayer lor_params=\"0\" channel_offset=\"0\" num_channels=\"10\" num_frames=\"20\" "
+        "data=\"layer.iseq\" source=\"layer.fseq\" name=\"Extra\"/></DataLayers>"
+        "<DisplayElements/><EffectDB/><ElementEffects/>";
+    std::string p = (seqDir / "nested.xsq").string();
+    std::ofstream(p, std::ios::binary) << FixedPointDoc(body);
+
+    // Show Directory is the top level folder, two levels above the sequence.
+    Loaded in(p, td.path.string());
+    REQUIRE(in.ok);
+    REQUIRE(in.file->GetDataLayers().GetNumLayers() == 2);
+    DataLayer* extra = in.file->GetDataLayers().GetDataLayer(1);
+    REQUIRE(extra != nullptr);
+    CHECK(extra->GetDataSource() == (seqDir / "layer.iseq").string());
+    CHECK(extra->GetSource() == (seqDir / "layer.fseq").string());
+}
+
+TEST_CASE("xsq load falls back to the show dir when a data layer's files are not beside the xsq", "[sequence][xsq]") {
+    // Older sequences may have their rendered .iseq/.fseq sitting in the show
+    // dir rather than beside the xsq - the xsq-relative lookup added for the
+    // nested-subfolder case above must not break that older layout.
+    TempDir td;
+    std::filesystem::path seqDir = td.path / "2026 Sequences" / "A Song";
+    std::error_code ec;
+    std::filesystem::create_directories(seqDir, ec);
+    REQUIRE_FALSE(ec);
+
+    std::ofstream(td.path / "layer.iseq", std::ios::binary) << "iseq-bytes";
+    std::ofstream(td.path / "layer.fseq", std::ios::binary) << "fseq-bytes";
+
+    std::string body =
+        "<DataLayers><DataLayer lor_params=\"0\" channel_offset=\"0\" num_channels=\"10\" num_frames=\"20\" "
+        "data=\"layer.iseq\" source=\"layer.fseq\" name=\"Extra\"/></DataLayers>"
+        "<DisplayElements/><EffectDB/><ElementEffects/>";
+    std::string p = (seqDir / "nested.xsq").string();
+    std::ofstream(p, std::ios::binary) << FixedPointDoc(body);
+
+    Loaded in(p, td.path.string());
+    REQUIRE(in.ok);
+    REQUIRE(in.file->GetDataLayers().GetNumLayers() == 2);
+    DataLayer* extra = in.file->GetDataLayers().GetDataLayer(1);
+    REQUIRE(extra != nullptr);
+    CHECK(extra->GetDataSource() == td.File("layer.iseq"));
+    CHECK(extra->GetSource() == td.File("layer.fseq"));
+}
+
+TEST_CASE("xsq load finds a data layer's files anywhere under the show dir when neither direct lookup matches", "[sequence][xsq]") {
+    // The files aren't beside the xsq, and aren't in the show dir root either -
+    // e.g. moved into a "renders" subfolder of their own. Only a recursive walk
+    // of the show dir finds them.
+    TempDir td;
+    std::filesystem::path seqDir = td.path / "2026 Sequences" / "A Song";
+    std::filesystem::path rendersDir = td.path / "renders" / "deep" / "deeper";
+    std::error_code ec;
+    std::filesystem::create_directories(seqDir, ec);
+    REQUIRE_FALSE(ec);
+    std::filesystem::create_directories(rendersDir, ec);
+    REQUIRE_FALSE(ec);
+
+    std::ofstream(rendersDir / "layer.iseq", std::ios::binary) << "iseq-bytes";
+    std::ofstream(rendersDir / "layer.fseq", std::ios::binary) << "fseq-bytes";
+
+    std::string body =
+        "<DataLayers><DataLayer lor_params=\"0\" channel_offset=\"0\" num_channels=\"10\" num_frames=\"20\" "
+        "data=\"layer.iseq\" source=\"layer.fseq\" name=\"Extra\"/></DataLayers>"
+        "<DisplayElements/><EffectDB/><ElementEffects/>";
+    std::string p = (seqDir / "nested.xsq").string();
+    std::ofstream(p, std::ios::binary) << FixedPointDoc(body);
+
+    Loaded in(p, td.path.string());
+    REQUIRE(in.ok);
+    REQUIRE(in.file->GetDataLayers().GetNumLayers() == 2);
+    DataLayer* extra = in.file->GetDataLayers().GetDataLayer(1);
+    REQUIRE(extra != nullptr);
+    CHECK(extra->GetDataSource() == (rendersDir / "layer.iseq").string());
+    CHECK(extra->GetSource() == (rendersDir / "layer.fseq").string());
 }
 
 TEST_CASE("xsq imported from list round trips", "[sequence][xsq][roundtrip]") {
