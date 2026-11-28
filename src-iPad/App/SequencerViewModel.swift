@@ -6497,6 +6497,18 @@ class SequencerViewModel {
             endMS: Int32(endMS ?? -1))
     }
 
+    /// Export the model or group at `rowIndex` as a full `.fseq` sparse to
+    /// just its channels. Window semantics match `exportModelAsFSEQ`.
+    @discardableResult
+    func exportModelAsSparseFSEQ(rowIndex: Int, path: String,
+                                 startMS: Int? = nil, endMS: Int? = nil) -> Bool {
+        return document.exportModelAsSparseFSEQ(
+            atRow: Int32(rowIndex),
+            toPath: path,
+            startMS: Int32(startMS ?? -1),
+            endMS: Int32(endMS ?? -1))
+    }
+
     /// Export the model at `rowIndex` as a video file. The codec is chosen by
     /// the flags (see `XLSequenceDocument.exportModelAsVideo`): plain compressed
     /// H.264 .mp4, `highQuality` HEVC .mp4, `forceProRes` ProRes 4444 .mov, or

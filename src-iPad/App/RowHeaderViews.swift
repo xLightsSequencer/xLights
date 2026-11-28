@@ -414,15 +414,17 @@ struct ModelRowHeader: View {
     /// only. Traces this node's channel range back to the model-level
     /// effects rendering onto it and presents a pickable results list.
     var onFindSourceEffects: (() -> Void)?
-    /// B49 export rendered-channel data for this row's model as a
-    /// Falcon Player `.eseq` sub-sequence. The closure receives
-    /// `true` when the caller should restrict the export to the
-    /// active loop region, `false` for the whole sequence. The
+    /// B49 export rendered-channel data for this row's model. The
+    /// closure receives `true` when the caller should restrict the
+    /// export to the active loop region, `false` for the whole
+    /// sequence, and whether to write a full `.fseq` sparse to the
+    /// model's (or group's) channels or a Falcon Player `.eseq`
+    /// sub-sequence (non-group rows only). The
     /// "selected range" entry only shows up when `hasLoopRegion`
     /// is true — on iPad, loop-region is how we indicate a time
     /// window (desktop uses a frame selection).
     var hasLoopRegion: Bool = false
-    var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
+    var onExportModelFSEQ: ((_ useLoopRegion: Bool, _ sparseFSEQ: Bool) -> Void)?
     /// Export this row's model as a video file. The closure receives the
     /// codec flags + file extension + a short label for the temp/default
     /// filename + optional upscale dimensions (0/0 = native). The outer
@@ -453,10 +455,10 @@ struct ModelRowHeader: View {
     /// 2 = nodes). Model-heading rows only.
     var onDeleteScopedEffects: ((_ scope: Int) -> Void)?
     /// Export only the selected effects' time span on this model as a
-    /// Falcon Player `.eseq` (desktop RowHeading.cpp:585). Shown only
+    /// sparse `.fseq` or `.eseq` (desktop RowHeading.cpp:585). Shown only
     /// when at least one selected effect belongs to this model.
     var hasSelectedEffectsOnModel: Bool = false
-    var onExportSelectedModelFSEQ: (() -> Void)?
+    var onExportSelectedModelFSEQ: ((_ sparseFSEQ: Bool) -> Void)?
     /// B48 — delete every empty layer on this row's element.
     /// Shown only on the element's primary row (`layerIndex == 0`)
     /// and only when there's > 1 layer to begin with.
@@ -718,21 +720,14 @@ struct ModelRowHeader: View {
                 }
             }
             if !isSubLayer && !isNodeRow, let fire = onExportModelFSEQ {
-                Button { fire(false) } label: {
-                    Label("Export Model as FSEQ…",
-                           systemImage: "square.and.arrow.up.on.square")
-                }
-                if hasLoopRegion {
-                    Button { fire(true) } label: {
-                        Label("Export Model (Loop Range) as FSEQ…",
-                               systemImage: "arrow.up.doc")
-                    }
-                }
-                if hasSelectedEffectsOnModel, let fireSel = onExportSelectedModelFSEQ {
-                    Button { fireSel() } label: {
-                        Label("Export Selected Model Effects as FSEQ…",
-                               systemImage: "square.and.arrow.up.badge.clock")
-                    }
+                exportModelDataMenu(fire: fire, sparse: true,
+                                    title: isGroup ? "Export Group as FSEQ" : "Export Model as FSEQ",
+                                    ext: "fseq", systemImage: "square.and.arrow.up.on.square")
+                // A group has no single buffer, so no sub-sequence.
+                if !isGroup {
+                    exportModelDataMenu(fire: fire, sparse: false,
+                                        title: "Export Model as Sub Sequence",
+                                        ext: "eseq", systemImage: "arrow.up.doc")
                 }
             }
             if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
@@ -899,6 +894,30 @@ struct ModelRowHeader: View {
     }
 
     private enum DisclosureKind { case submodels, nodes }
+    /// Whole sequence / loop range / selected effects submenu for one
+    /// model-data export format.
+    @ViewBuilder
+    private func exportModelDataMenu(fire: @escaping (Bool, Bool) -> Void, sparse: Bool,
+                                     title: String, ext: String, systemImage: String) -> some View {
+        Menu {
+            Button { fire(false, sparse) } label: {
+                Label("Whole Sequence (.\(ext))", systemImage: "square.and.arrow.up")
+            }
+            if hasLoopRegion {
+                Button { fire(true, sparse) } label: {
+                    Label("Loop Range (.\(ext))", systemImage: "repeat")
+                }
+            }
+            if hasSelectedEffectsOnModel, let fireSel = onExportSelectedModelFSEQ {
+                Button { fireSel(sparse) } label: {
+                    Label("Selected Effects (.\(ext))", systemImage: "square.and.arrow.up.badge.clock")
+                }
+            }
+        } label: {
+            Label(title, systemImage: systemImage)
+        }
+    }
+
     private func toggleDisclosure(kind: DisclosureKind) {
         switch kind {
         case .submodels:

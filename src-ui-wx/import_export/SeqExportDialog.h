@@ -33,7 +33,7 @@ public:
 
     SeqExportDialog(wxWindow* parent, const std::string& model, wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
     virtual ~SeqExportDialog();
-    void ModelExportTypes(bool isgroup);
+    void ModelExportTypes(bool noVideo, bool isGroup = false);
     void SetExportType(bool selectedEffects, bool render);
 
     // The format string the user selected (e.g. "GIF Image, *.gif").

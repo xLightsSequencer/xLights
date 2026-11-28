@@ -712,6 +712,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "Vir";
         } else if (format == "hls") {
             format = "HLS";
+        } else if (format == "fseq") {
+            format = "xLights";
         } else if (format == "eseq") {
             format = "FPP";
         } else if (format == "eseqcompressed") {
@@ -774,6 +776,8 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             format = "Vir";
         } else if (format == "hls") {
             format = "HLS";
+        } else if (format == "fseq") {
+            format = "xLights";
         } else if (format == "eseq") {
             format = "FPP";
         } else if (format == "eseqcompressed") {

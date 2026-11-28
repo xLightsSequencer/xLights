@@ -99,9 +99,9 @@ SeqExportDialog::~SeqExportDialog()
     //*)
 }
 
-void SeqExportDialog::ModelExportTypes(bool isgroup)
+void SeqExportDialog::ModelExportTypes(bool noVideo, bool isGroup)
 {
-    if (isgroup) {
+    if (noVideo) {
         ListBoxFormat->Delete(ListBoxFormat->FindString(_("Compressed Video, *.mp4")));
         ListBoxFormat->Delete(ListBoxFormat->FindString(_("High Quality Compressed Video, *.mp4")));
         ListBoxFormat->Delete(ListBoxFormat->FindString(_("HD ProRes Video, *.mov")));
@@ -115,9 +115,13 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     }
     ListBoxFormat->Delete(ListBoxFormat->FindString(_("LOR. *.lms or *.las")));
     ListBoxFormat->Delete(ListBoxFormat->FindString(_("Vixen, Vixen sequence file *.vix")));
-    ListBoxFormat->Delete(ListBoxFormat->FindString(_("xLights/FPP, *.fseq")));
     ListBoxFormat->Append(_("FPP Sub sequence. *.eseq"));
     ListBoxFormat->Append(_("FPP Compressed Sub sequence. *.eseq"));
+    if (isGroup) {
+        // A group has no single buffer to export; only its channels in a sparse fseq.
+        ListBoxFormat->Clear();
+        ListBoxFormat->Append(_("xLights/FPP, *.fseq"));
+    }
 
     wxString let;
     auto* config = GetXLightsConfig();

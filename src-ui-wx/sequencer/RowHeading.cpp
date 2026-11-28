@@ -751,10 +751,10 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 } 
 
                 modelMenu->Append(ID_ROW_MNU_PLAY_MODEL, "Play");
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup);
-                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
-                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && m->GetDisplayAs() != DisplayAsType::ModelGroup && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL, "Export")->Enable(m != nullptr);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL, "Render and Export")->Enable(m != nullptr);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_MODEL_SELECTED_EFFECTS, "Export Selected Model Effects")->Enable(m != nullptr && element->GetSelectedEffectCount() > 0);
+                modelMenu->Append(ID_ROW_MNU_EXPORT_RENDERED_MODEL_SELECTED_EFFECTS, "Render and Export Selected Model Effects")->Enable(m != nullptr && element->GetSelectedEffectCount() > 0);
                 rowMenu->Append(ID_ROW_MNU_SELECT_ROW_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS, "Select Effects");
                 modelMenu->Append(ID_ROW_MNU_SELECT_MODEL_EFFECTS_INCL_SUBMODELS, "Select Effects incl SubModels");

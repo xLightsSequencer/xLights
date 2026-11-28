@@ -33,6 +33,7 @@
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
 #include "render/FSEQFile.h"
+#include "render/FSEQFileIO.h"
 #include "render/ModelVideoExporter.h"
 #include "render/ModelGifExporter.h"
 #import "XLHousePreviewVideoExporter.h"
@@ -2161,6 +2162,35 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     }
     v2->finalize();
     return YES;
+}
+
+- (BOOL)exportModelAsSparseFSEQAtRow:(int)rowIndex toPath:(NSString*)path
+                             startMS:(int)startMS endMS:(int)endMS {
+    if (!path || path.length == 0 || !_context) return NO;
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) return NO;
+    Model* model = _context->GetModel(row->element->GetName());
+    if (!model) return NO;
+
+    SequenceData& fullData = _context->GetSequenceData();
+    const uint32_t totalFrames = (uint32_t)fullData.NumFrames();
+    if (totalFrames == 0 || fullData.NumChannels() == 0) return NO;
+
+    const int frameTime = fullData.FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) return NO;
+
+    std::string media;
+    auto* sf = _context->GetSequenceFile();
+    if (sf && startFrame == 0 && endFrame == totalFrames) media = sf->GetMediaFile();
+    return FSEQFileIO::WriteModel([path UTF8String], fullData, model, startFrame, endFrame, media) ? YES : NO;
 }
 
 - (void)exportModelAsGIFAtRow:(int)rowIndex toPath:(NSString*)path

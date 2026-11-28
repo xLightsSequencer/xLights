@@ -715,6 +715,16 @@ typedef NS_ENUM(NSInteger, XLAutosaveOfferKind) {
                        startMS:(int)startMS endMS:(int)endMS
     NS_SWIFT_NAME(exportModelAsFSEQ(atRow:toPath:startMS:endMS:));
 
+// Export the row's model or model group as a full FSEQ v2 `.fseq` that is
+// sparse to just its channels (a group's member models), at their absolute
+// channel numbers — it plays on the real controllers like the sequence fseq.
+// Same frame-window and render-currency semantics as exportModelAsFSEQ; the
+// media file is recorded only when the whole sequence is written. Returns NO
+// for timing rows, when there's no rendered data, or the write failed.
+- (BOOL)exportModelAsSparseFSEQAtRow:(int)rowIndex toPath:(NSString*)path
+                             startMS:(int)startMS endMS:(int)endMS
+    NS_SWIFT_NAME(exportModelAsSparseFSEQ(atRow:toPath:startMS:endMS:));
+
 // Export the model at `rowIndex` as a video file (`path`'s extension picks
 // the container). The codec flags mirror desktop's DoExportModel:
 //   compressed=YES  -> H.264 .mp4 (lossy)        [highQuality NO, forceProRes NO]

@@ -20,6 +20,7 @@
 class SequenceData;
 class SequenceElements;
 class RenderContext;
+class Model;
 
 // Shared, wx-free fseq I/O used by the desktop, iPad, and headless render hosts
 // so the .fseq write path (channel packing, master-view sparse ranges, media /
@@ -51,6 +52,12 @@ struct WriteOptions {
     std::string source = "xLights";     // 'sp' header
     std::vector<EmbeddedBlob> embedded; // 'XR'/'XN'/'XS' compressed blobs (in emit order)
     std::vector<FSEQFile::VariableHeader> extraHeaders; // caller-supplied extras
+    // Explicit sparse ranges (v2 only). When non-empty they replace the
+    // master-view ranges derived from `elements`.
+    std::vector<std::pair<uint32_t, uint32_t>> sparseRanges;
+    // Frame window [startFrame, endFrame) to write; clamped to the data.
+    uint32_t startFrame = 0;
+    uint32_t endFrame = UINT32_MAX;
 };
 
 // Compute the master-view sparse channel ranges (merged) from the sequence's
@@ -59,6 +66,10 @@ struct WriteOptions {
 // check) share the one definition.
 std::vector<std::pair<uint32_t, uint32_t>> ComputeSparseRanges(SequenceElements& elements,
                                                                RenderContext& ctx);
+
+// Sparse channel ranges (merged) covering one model. A ModelGroup expands to its
+// members; a SubModel counts as its whole parent model (as in ComputeSparseRanges).
+std::vector<std::pair<uint32_t, uint32_t>> ComputeModelSparseRanges(Model* model);
 
 // Write seqData to path as an fseq. When `elements` and `ctx` are non-null,
 // FPP-command headers and (when options.sparse, v2 only) the master-view sparse
@@ -70,5 +81,17 @@ bool Write(const std::string& path,
            SequenceElements* elements,
            RenderContext* ctx,
            const WriteOptions& options = {});
+
+// Write a v2 zstd fseq that is sparse to just `model`'s channels (a group's
+// member models), frames [startFrame, endFrame). Channel numbers stay absolute,
+// so the file plays on the real controllers like the full sequence fseq does.
+// `mediaFile` sets the 'mf' header when non-empty. Returns false when the model
+// has no channels inside seqData or the frame window is empty.
+bool WriteModel(const std::string& path,
+                SequenceData& seqData,
+                Model* model,
+                uint32_t startFrame = 0,
+                uint32_t endFrame = UINT32_MAX,
+                const std::string& mediaFile = "");
 
 } // namespace FSEQFileIO

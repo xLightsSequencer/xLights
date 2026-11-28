@@ -205,3 +205,77 @@ TEST_CASE("FSEQFileIO Write without sparse or for v1 keeps every channel", "[seq
     CHECK(b->getVersionMajor() == 1);
     CHECK(b->getChannelCount() == 16);
 }
+
+TEST_CASE("FSEQFileIO WriteModel writes only that model's channels", "[seq2][fseqio]") {
+    TempDir td;
+    IOFixture f;
+    Model* a = f.Line("A", 4, 1);   // 0..11
+    f.Line("B", 2, 21);             // 20..25
+    f.Line("C", 3, 41);             // 40..48
+    Model* g = f.AddModel("<modelGroup name=\"G\" models=\"A,C\"/>");
+    f.ctx.AllModels.RecalcStartChannels();
+
+    CHECK(FSEQFileIO::ComputeModelSparseRanges(a) == Ranges{ { 0, 12 } });
+    CHECK(FSEQFileIO::ComputeModelSparseRanges(g) == Ranges{ { 0, 12 }, { 40, 9 } });
+    CHECK(FSEQFileIO::ComputeModelSparseRanges(nullptr).empty());
+
+    SequenceData sd;
+    sd.init(52, 20, 25);
+    for (unsigned fr = 0; fr < 20; ++fr)
+        for (unsigned ch = 0; ch < 52; ++ch) sd[fr][ch] = (uint8_t)(fr + ch + 1);
+
+    auto readFrame = [](FSEQFile& file, uint32_t frame) {
+        std::vector<uint8_t> buf(52, 0);
+        std::unique_ptr<FSEQFile::FrameData> fd(file.getFrame(frame));
+        REQUIRE(fd);
+        REQUIRE(fd->readFrame(buf.data(), (uint32_t)buf.size()));
+        return buf;
+    };
+
+    SECTION("single model, whole sequence, with media") {
+        auto p = td.File("a.fseq");
+        REQUIRE(FSEQFileIO::WriteModel(p, sd, a, 0, UINT32_MAX, "song.mp3"));
+        std::unique_ptr<FSEQFile> file(FSEQFile::openFSEQFile(p));
+        REQUIRE(file);
+        auto* v2 = dynamic_cast<V2FSEQFile*>(file.get());
+        REQUIRE(v2);
+        CHECK(v2->m_sparseRanges == Ranges{ { 0, 12 } });
+        CHECK(file->getNumFrames() == 20);
+        CHECK(file->getStepTime() == 25);
+        CHECK(file->getChannelCount() == 12);
+        REQUIRE(Find(*file, 'm', 'f') != nullptr);
+        CHECK(std::string(reinterpret_cast<const char*>(Find(*file, 'm', 'f')->data.data())) == "song.mp3");
+        CHECK(Find(*file, 'e', 'S') == nullptr);
+        auto buf = readFrame(*file, 5);
+        CHECK(buf[0] == 6);
+        CHECK(buf[11] == 17);
+        CHECK(buf[12] == 0);
+        CHECK(buf[20] == 0); // model B is not in the file
+    }
+
+    SECTION("group with a frame window keeps absolute channels") {
+        auto p = td.File("g.fseq");
+        REQUIRE(FSEQFileIO::WriteModel(p, sd, g, 4, 10));
+        std::unique_ptr<FSEQFile> file(FSEQFile::openFSEQFile(p));
+        REQUIRE(file);
+        auto* v2 = dynamic_cast<V2FSEQFile*>(file.get());
+        REQUIRE(v2);
+        CHECK(v2->m_sparseRanges == Ranges{ { 0, 12 }, { 40, 9 } });
+        CHECK(file->getNumFrames() == 6);
+        CHECK(Find(*file, 'm', 'f') == nullptr);
+        auto buf = readFrame(*file, 0); // source frame 4
+        CHECK(buf[0] == 5);
+        CHECK(buf[20] == 0);
+        CHECK(buf[40] == 45);
+        CHECK(buf[48] == 53);
+        CHECK(buf[49] == 0);
+    }
+
+    SECTION("model outside the data or an empty window fails") {
+        Model* far = f.Line("Far", 2, 1001);
+        f.ctx.AllModels.RecalcStartChannels();
+        CHECK_FALSE(FSEQFileIO::WriteModel(td.File("far.fseq"), sd, far));
+        CHECK_FALSE(FSEQFileIO::WriteModel(td.File("empty.fseq"), sd, a, 10, 10));
+        CHECK_FALSE(FSEQFileIO::WriteModel(td.File("null.fseq"), sd, nullptr));
+    }
+}

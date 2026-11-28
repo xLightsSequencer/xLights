@@ -82,6 +82,31 @@ void addModelRanges(Model* m, std::map<uint32_t, uint32_t>& ranges) {
     }
 }
 
+// Merge [firstChannel -> chanCount] entries into sorted, non-overlapping ranges.
+std::vector<std::pair<uint32_t, uint32_t>> mergeRanges(const std::map<uint32_t, uint32_t>& ranges) {
+    std::vector<std::pair<uint32_t, uint32_t>> result;
+    const uint32_t gapEliminate = 0;
+    std::pair<uint32_t, uint32_t> cur(INT_MAX, INT_MAX);
+    for (auto& a : ranges) {
+        if (a.second == 0) continue;
+        if (cur.first == INT_MAX) {
+            cur.first = a.first;
+            cur.second = a.second;
+        } else if (a.first <= (cur.first + cur.second + gapEliminate)) {
+            uint32_t maxEnd = std::max(cur.first + cur.second - 1, a.first + a.second - 1);
+            cur.second = maxEnd - cur.first + 1;
+        } else {
+            result.push_back(cur);
+            cur.first = a.first;
+            cur.second = a.second;
+        }
+    }
+    if (cur.first != INT_MAX) {
+        result.push_back(cur);
+    }
+    return result;
+}
+
 // Build an FPP Commands ('FC') / FPP Effects ('FE') variable header from a
 // timing track. Port of the desktop / iPad BuildFppCommandHeader.
 std::optional<FSEQFile::VariableHeader> buildFppCommandHeader(TimingElement* te, int stepTime) {
@@ -159,26 +184,13 @@ std::vector<std::pair<uint32_t, uint32_t>> ComputeSparseRanges(SequenceElements&
         }
     }
 
-    std::vector<std::pair<uint32_t, uint32_t>> result;
-    const uint32_t gapEliminate = 0;
-    std::pair<uint32_t, uint32_t> cur(INT_MAX, INT_MAX);
-    for (auto& a : ranges) {
-        if (cur.first == INT_MAX) {
-            cur.first = a.first;
-            cur.second = a.second;
-        } else if (a.first <= (cur.first + cur.second + gapEliminate)) {
-            uint32_t maxEnd = std::max(cur.first + cur.second - 1, a.first + a.second - 1);
-            cur.second = maxEnd - cur.first + 1;
-        } else {
-            result.push_back(cur);
-            cur.first = a.first;
-            cur.second = a.second;
-        }
-    }
-    if (cur.first != INT_MAX) {
-        result.push_back(cur);
-    }
-    return result;
+    return mergeRanges(ranges);
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> ComputeModelSparseRanges(Model* model) {
+    std::map<uint32_t, uint32_t> ranges;
+    addModelRanges(model, ranges);
+    return mergeRanges(ranges);
 }
 
 bool Write(const std::string& path,
@@ -206,7 +218,13 @@ bool Write(const std::string& path,
                                                   : roundTo4((long)seqData.NumChannels());
     file->setChannelCount((int)channelCount);
     file->setStepTime(seqData.FrameTime());
-    file->setNumFrames(static_cast<uint32_t>(seqData.NumFrames()));
+    const uint32_t startFrame = std::min(options.startFrame, static_cast<uint32_t>(seqData.NumFrames()));
+    const uint32_t endFrame = std::min(options.endFrame, static_cast<uint32_t>(seqData.NumFrames()));
+    if (endFrame <= startFrame) {
+        spdlog::warn("FSEQFileIO::Write: empty frame window [{}, {}) for {}", startFrame, endFrame, path);
+        return false;
+    }
+    file->setNumFrames(endFrame - startFrame);
 
     if (!options.mediaFile.empty()) {
         FSEQFile::VariableHeader mf;
@@ -225,7 +243,11 @@ bool Write(const std::string& path,
         file->addVariableHeader(sp);
     }
 
-    if (options.version >= 2 && options.sparse && elements != nullptr && ctx != nullptr) {
+    if (options.version >= 2 && !options.sparseRanges.empty()) {
+        if (auto* v2 = dynamic_cast<V2FSEQFile*>(file.get())) {
+            v2->m_sparseRanges = options.sparseRanges;
+        }
+    } else if (options.version >= 2 && options.sparse && elements != nullptr && ctx != nullptr) {
         if (auto* v2 = dynamic_cast<V2FSEQFile*>(file.get())) {
             for (auto& r : ComputeSparseRanges(*elements, *ctx)) {
                 v2->m_sparseRanges.push_back(r);
@@ -276,15 +298,42 @@ bool Write(const std::string& path,
     }
 
     file->writeHeader();
-    const uint32_t numFrames = static_cast<uint32_t>(seqData.NumFrames());
-    for (uint32_t fr = 0; fr < numFrames; ++fr) {
-        file->addFrame(fr, &seqData[fr][0]);
+    const uint32_t numFrames = endFrame - startFrame;
+    for (uint32_t fr = startFrame; fr < endFrame; ++fr) {
+        file->addFrame(fr - startFrame, &seqData[fr][0]);
     }
     file->finalize();
 
     spdlog::info("FSEQFileIO::Write: wrote {} frames x {} channels to {}",
                  numFrames, seqData.NumChannels(), path);
     return true;
+}
+
+bool WriteModel(const std::string& path,
+                SequenceData& seqData,
+                Model* model,
+                uint32_t startFrame,
+                uint32_t endFrame,
+                const std::string& mediaFile) {
+    if (model == nullptr) return false;
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    const uint32_t numChannels = static_cast<uint32_t>(seqData.NumChannels());
+    for (auto r : ComputeModelSparseRanges(model)) {
+        if (r.first >= numChannels) continue;
+        r.second = std::min(r.second, numChannels - r.first);
+        ranges.push_back(r);
+    }
+    if (ranges.empty()) {
+        // An empty range list would make Write emit every channel instead.
+        spdlog::warn("FSEQFileIO::WriteModel: model {} has no channels inside the sequence data", model->GetName());
+        return false;
+    }
+    WriteOptions options;
+    options.sparseRanges = std::move(ranges);
+    options.startFrame = startFrame;
+    options.endFrame = endFrame;
+    options.mediaFile = mediaFile;
+    return Write(path, seqData, nullptr, nullptr, options);
 }
 
 } // namespace FSEQFileIO

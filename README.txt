@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
+    -enh (dkulp)                 Export a model or model group as an fseq that holds only its channels (row
+                                 heading Export menus, desktop and iPad)
     -bug (scott)                 Fix loading data layer's with relative path next to the xsq not in the show folder root.
     -enh (scott)                 Color preferences for the Import Effects compare previews (background, vendor model,
                                  your model and the rest of the model) so they can be made visible in dark mode

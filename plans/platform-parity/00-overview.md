@@ -25,13 +25,13 @@ fine-grained — a menu entry, a dialog field, a gesture):
 | 05 Color, palettes & curves | 74 | 16 | 27 | 3 | 9 | Curve editors have no session-scoped Cancel/revert; no drag-and-drop for colors/curves |
 | 06 Layout, models, 3D | 171 | 52 | 63 | 5 | 8 | Deep grid dialogs (custom-model transforms, Faces/States forms), CAD/print export, cross-show import |
 | 07 Controllers, outputs, upload | 73 | 30 | 30 | 12 | 0 | Closed-firmware uploads deliberately out of scope (policy); real bugs: Visualize wrongly policy-gated, ESPixelStick missing its open-firmware caps node (known, deferred) |
-| 08 Import & export | 52 | 12 | 46 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
+| 08 Import & export | 53 | 12 | 46 | 1 | 3 | 11/13 effect-import formats work; exporters (.lcb/.vir/LSP/HLS) still trapped in desktop `TabConvert.cpp` |
 | 09 Render & playback | 63 | 11 | 18 | 9 | 14 | No render dependency tracking (stale effects); no per-model render progress; no FSEQ version selector |
 | 10 Presets, views, jukebox | 56 | 14 | 15 | 6 | 3 | Preset formats don't interchange; jukebox ported 2026-08-10; no workspace layouts |
 | 11 Preferences & shortcuts | 33 | 19 | 51 | 0 | 2 | No unified settings surface — 33 parity settings scattered across six unrelated places (redo approved 2026-08-01; see Decisions) |
 | 12 AI, automation, scripting | 41 | 6 | 3 | 108 | 4 | AI at near-parity; automation/scripting at zero (no HTTP listener, no interpreter on iOS — App Intents is the sanctioned path) |
 | 13 Tools, diagnostics, help | 58 | 13 | 12 | 4 | 6 | Light test & Check Sequence share core engines; gaps are targeting trees, report export, crash-time capture |
-| **Total (01–13)** | **1027** | **285** | **344** | **165** | **88** | |
+| **Total (01–13)** | **1028** | **285** | **344** | **165** | **88** | |
 
 Theme 11 additionally has 8 ➖ rows. Theme 14 (reverse parity) now has **49** 🔵 rows with a
 14-rank desktop-adoption shortlist. Theme 15 has 143 desktop cross-OS rows with no iPad status.

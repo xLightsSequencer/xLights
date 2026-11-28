@@ -21,6 +21,7 @@
 #include "utils/ExternalHooks.h"
 #include "utils/UtilFunctions.h"
 #include "models/ModelGroup.h"
+#include "render/FSEQFileIO.h"
 
 #include <log.h>
 
@@ -551,11 +552,12 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     if (m == nullptr)
         return false;
 
-    if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
-        return false;
-
     std::string filename(fn);
     std::string format(fmt);
+    const bool isGroup = m->GetDisplayAs() == DisplayAsType::ModelGroup;
+    // Groups have no single buffer, so the sparse fseq is their only format.
+    if (isGroup && format.substr(0, 3) != "xLi")
+        return false;
 
     auto sw = std::chrono::steady_clock::now();
     std::string Out3 = format.substr(0, 3);
@@ -578,6 +580,23 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         while (mRendering) {
             wxYield();
         }
+    }
+
+    if (format.substr(0, 3) == "xLi") {
+        oName.replace_extension(".fseq");
+        fullpath = oName.string();
+        // Only a whole-sequence export lines up with the audio.
+        std::string media = (startFrame == 0 && endFrame >= _seqData.NumFrames()) ? mediaFilename : std::string();
+        bool ok = FSEQFileIO::WriteModel(fullpath, _seqData, m, startFrame, endFrame, media);
+        float s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
+        s /= 1000;
+        if (ok) {
+            SetStatusText(fmt::format("Finished writing model: {} in {:.3f}s ", fullpath, s));
+        } else {
+            SetStatusText(fmt::format("Failed writing model: {}", fullpath));
+        }
+        EnableSequenceControls(true);
+        return ok;
     }
 
     auto exported = _renderEngine->ExportModelData(model, _seqData);
@@ -699,7 +718,7 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     }
 
     SeqExportDialog dialog(this, m->GetName());
-    dialog.ModelExportTypes(isgroup || !isboxed);
+    dialog.ModelExportTypes(isgroup || !isboxed, isgroup);
     dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {

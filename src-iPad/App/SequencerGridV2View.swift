@@ -12,6 +12,7 @@ let kXTimingFileType: UTType = UTType(filenameExtension: "xtiming") ?? .xml
 /// the exporter still presents a picker on devices that don't
 /// know the file type.
 let kESEQFileType: UTType = UTType(filenameExtension: "eseq") ?? .data
+let kFSEQFileType: UTType = UTType(filenameExtension: "fseq") ?? .data
 
 
 /// File document wrapper for the Save / Export timing-track flow.
@@ -444,8 +445,8 @@ private struct SongRegionExportModifier: ViewModifier {
 /// B49 — Falcon Player sub-sequence export document. Same
 /// temp-path → `.fileExporter` pattern as `XTimingExportDoc`.
 struct FSEQExportDoc: FileDocument {
-    static var readableContentTypes: [UTType] { [kESEQFileType] }
-    static var writableContentTypes: [UTType] { [kESEQFileType] }
+    static var readableContentTypes: [UTType] { [kESEQFileType, kFSEQFileType] }
+    static var writableContentTypes: [UTType] { [kESEQFileType, kFSEQFileType] }
     let sourcePath: String
     init(sourcePath: String) { self.sourcePath = sourcePath }
     init(configuration: ReadConfiguration) throws { sourcePath = "" }
@@ -471,6 +472,7 @@ private struct ExportFileExportersModifier: ViewModifier {
     @Binding var showingFSEQExporter: Bool
     @Binding var fseqExportDoc: FSEQExportDoc?
     let fseqDefaultName: String
+    let fseqContentType: UTType
     /// Non-nil while a model media export (video or GIF) is encoding; the
     /// string is shown under the spinner.
     let exportInProgressMessage: String?
@@ -486,7 +488,7 @@ private struct ExportFileExportersModifier: ViewModifier {
             .fileExporter(
                 isPresented: $showingFSEQExporter,
                 document: fseqExportDoc,
-                contentType: kESEQFileType,
+                contentType: fseqContentType,
                 defaultFilename: fseqDefaultName
             ) { _ in fseqExportDoc = nil }
             .overlay {
@@ -751,6 +753,7 @@ struct SequencerGridV2View: View {
     @State private var fseqExportDoc: FSEQExportDoc? = nil
     @State private var showingFSEQExporter: Bool = false
     @State private var fseqDefaultName: String = "Model.eseq"
+    @State private var fseqContentType: UTType = kESEQFileType
 
     /// Export-model-as-video state. The submenu fires with the codec
     /// flags + extension; the bridge encodes to a temp file, then
@@ -1351,6 +1354,7 @@ struct SequencerGridV2View: View {
             showingFSEQExporter: $showingFSEQExporter,
             fseqExportDoc: $fseqExportDoc,
             fseqDefaultName: fseqDefaultName,
+            fseqContentType: fseqContentType,
             exportInProgressMessage: videoExportInProgress ? "Exporting video…"
                                    : (gifExportInProgress ? "Exporting GIF…" : nil)))
         // B41 waveform filter picker.
@@ -1824,50 +1828,43 @@ struct SequencerGridV2View: View {
     }
 
     /// B49: write the rendered channel data for the row's model to a
-    /// temp `.eseq` file and hand that path off to SwiftUI's
-    /// `.fileExporter`. When `useLoopRegion` is true and a loop is
-    /// active, only the loop range is exported; otherwise the full
-    /// sequence is written.
-    private func startFSEQExport(rowIndex: Int, useLoopRegion: Bool) {
-        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
-        let safeName = modelName.isEmpty ? "Model" : modelName
-        let tempDir = FileManager.default.temporaryDirectory
-        let tempPath = tempDir.appendingPathComponent(
-            "\(safeName)-\(UUID().uuidString).eseq").path
-        let startMS: Int?
-        let endMS: Int?
+    /// temp file — a `.fseq` sparse to the model's (or group's)
+    /// channels, or a `.eseq` sub-sequence — and hand that path off to
+    /// SwiftUI's `.fileExporter`. When `useLoopRegion` is true and a
+    /// loop is active, only the loop range is exported; otherwise the
+    /// full sequence is written.
+    private func startFSEQExport(rowIndex: Int, useLoopRegion: Bool, sparse: Bool) {
         if useLoopRegion, viewModel.hasLoopRegion {
-            startMS = viewModel.loopStartMS
-            endMS = viewModel.loopEndMS
+            writeModelDataExport(rowIndex: rowIndex, sparse: sparse,
+                                 startMS: viewModel.loopStartMS, endMS: viewModel.loopEndMS)
         } else {
-            startMS = nil
-            endMS = nil
+            writeModelDataExport(rowIndex: rowIndex, sparse: sparse, startMS: nil, endMS: nil)
         }
-        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
-                                           startMS: startMS, endMS: endMS) else {
-            return
-        }
-        fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
-        fseqDefaultName = "\(safeName).eseq"
-        showingFSEQExporter = true
     }
 
     /// Export only the selected effects' time span on the row's model
     /// (desktop "Export Selected Model Effects"). Falls back silently
     /// when no selected effect belongs to this model.
-    private func startSelectedFSEQExport(rowIndex: Int) {
+    private func startSelectedFSEQExport(rowIndex: Int, sparse: Bool) {
         guard let span = viewModel.selectedEffectsSpanForModel(rowIndex: rowIndex) else { return }
+        writeModelDataExport(rowIndex: rowIndex, sparse: sparse, startMS: span.start, endMS: span.end)
+    }
+
+    private func writeModelDataExport(rowIndex: Int, sparse: Bool, startMS: Int?, endMS: Int?) {
         let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
         let safeName = modelName.isEmpty ? "Model" : modelName
-        let tempDir = FileManager.default.temporaryDirectory
-        let tempPath = tempDir.appendingPathComponent(
-            "\(safeName)-\(UUID().uuidString).eseq").path
-        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
-                                           startMS: span.start, endMS: span.end) else {
-            return
-        }
+        let ext = sparse ? "fseq" : "eseq"
+        let tempPath = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).\(ext)").path
+        let ok = sparse
+            ? viewModel.exportModelAsSparseFSEQ(rowIndex: rowIndex, path: tempPath,
+                                                startMS: startMS, endMS: endMS)
+            : viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
+                                          startMS: startMS, endMS: endMS)
+        guard ok else { return }
         fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
-        fseqDefaultName = "\(safeName).eseq"
+        fseqDefaultName = "\(safeName).\(ext)"
+        fseqContentType = sparse ? kFSEQFileType : kESEQFileType
         showingFSEQExporter = true
     }
 
@@ -2646,8 +2643,8 @@ struct SequencerGridV2View: View {
                     hasClipboard: hasClipboard,
                     onFindSourceEffects: { viewModel.findSourceEffects(rowIndex: row.id) },
                     hasLoopRegion: hasLoopRegion,
-                    onExportModelFSEQ: { useLoop in
-                        startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
+                    onExportModelFSEQ: { useLoop, sparse in
+                        startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop, sparse: sparse)
                     },
                     onExportModelVideo: { compressed, highQuality, forceProRes, ext, label, expW, expH in
                         startVideoExport(rowIndex: row.id, compressed: compressed,
@@ -2676,8 +2673,8 @@ struct SequencerGridV2View: View {
                     },
                     hasSelectedEffectsOnModel: !modelsWithSelection.isEmpty
                         && modelsWithSelection.contains(viewModel.document.rowModelName(at: Int32(row.id))),
-                    onExportSelectedModelFSEQ: {
-                        startSelectedFSEQExport(rowIndex: row.id)
+                    onExportSelectedModelFSEQ: { sparse in
+                        startSelectedFSEQExport(rowIndex: row.id, sparse: sparse)
                     },
                     unusedLayerCount: Int(viewModel.document.unusedLayerCount(atRow: Int32(row.id))),
                     onDeleteUnusedLayers: {

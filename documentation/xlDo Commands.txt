@@ -222,7 +222,7 @@ Response
     {"res":200, "msg": "Models Exported.", "output": "C:\FullPath\Models_.csv"}
 
 Export Model
-    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|mp4compressed|mp4highquality|aviuncompressed|mp4uncompressed|losslessrgb|prores4444|hdprores|minleon|gif"}
+    {"cmd":"exportModel", "filename":"file to create", "model":"model to export", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|fseq|eseq|eseqcompressed|avicompressed|mp4compressed|mp4highquality|aviuncompressed|mp4uncompressed|losslessrgb|prores4444|hdprores|minleon|gif"}
 
     Video format values:
         avicompressed / mp4compressed   Compressed Video (H.264 .mp4)
@@ -235,7 +235,7 @@ Export Model
     This assumes the rendered model data is up to date
 
 Export Model With Render
-    {"cmd":"exportModelWithRender", "filename":"file to create", "model":"model to export", "highdef":"true|false", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|eseq|eseqcompressed|avicompressed|mp4compressed|mp4highquality|aviuncompressed|mp4uncompressed|losslessrgb|prores4444|hdprores|minleon|gif"}
+    {"cmd":"exportModelWithRender", "filename":"file to create", "model":"model to export", "highdef":"true|false", "format":"lsp|lorclipboard|lorclipboards5|vixenroutine|hls|fseq|eseq|eseqcompressed|avicompressed|mp4compressed|mp4highquality|aviuncompressed|mp4uncompressed|losslessrgb|prores4444|hdprores|minleon|gif"}
     
 Response
     {"res":200, "msg": "Model exported."}
