@@ -137,6 +137,19 @@ bool MorphEffect::PressButton(const std::string& id, SettingsMap& paletteMap, Se
     return false;
 }
 
+// Index on the shorter side matching line index i of the longer one (total_length long). The build uses
+// fast-math, which may compute i / total_length as i * (1 / total_length) and land just under a whole number
+// (29 * (28 * (1/29)) is 27.999999999999996): truncating that put the far end of a 29-row sweep one row short,
+// so its last line was drawn as a diagonal that missed part of the end row. Sides of equal length match
+// index for index, like pos_a; otherwise the nudge is far smaller than the 0.1 step.
+static size_t otherSideIndex(size_t size, double total_length, double i)
+{
+    if (size == 0) return 0;
+    if ((double)size == total_length) return (size_t)i;
+    size_t idx = (size_t)(size * (i / total_length) + 1e-6);
+    return idx < size ? idx : size - 1;
+}
+
 static int calcPosition(int value, int base)
 {
     if( value == 100 ) return (base - 1);
@@ -502,9 +515,8 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         // draw the tail
         for( double i = std::min(head_end_of_tail_pos, total_length-1); i >= tail_end_of_tail_pos && i >= 0.0; i -= step_size )
         {
-            double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
-            pos_b = v_shtx->size() * pct;
+            pos_b = otherSideIndex(v_shtx->size(), total_length, i);
             double tail_color_pct = (i-tail_end_of_tail_pos) / total_tail_length;
             if( num_tail_colors > 2 )
             {
@@ -543,9 +555,8 @@ void MorphEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         // draw the head
         for( double i = std::max(tail_end_of_head_pos, 0.0); i <= head_end_of_head_pos && i < total_length; i += step_size )
         {
-            double pct = ((total_length == 0) ? 0.0 : i / total_length);
             pos_a = i;
-            pos_b = v_shtx->size() * pct;
+            pos_b = otherSideIndex(v_shtx->size(), total_length, i);
             queueLine((*v_lngx)[pos_a]+(repeat_x*repeat), (*v_lngy)[pos_a]+(repeat_y*repeat), (*v_shtx)[pos_b]+(repeat_x*repeat), (*v_shty)[pos_b]+(repeat_y*repeat), head_color);
         }
     }

@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.22  November ??, 2026
+    -bug (dkulp)                 Due to --ffast-math, Morph may omit some pixels near certain boundaries
     -enh (dkulp)                 Export a model or model group as an fseq that holds only its channels (row
                                  heading Export menus, desktop and iPad)
     -bug (scott)                 Fix loading data layer's with relative path next to the xsq not in the show folder root.
