@@ -90,6 +90,12 @@ bool MatrixModel::ChangeStringCount(long count, std::string & message)
     return true;
 }
 
+bool MatrixModel::ApplyStringLayout(int strings, const std::vector<int>& /*startNodes*/)
+{
+    std::string message;
+    return ChangeStringCount(strings, message);
+}
+
 // We do this separately as derived models such as Tree assume BufX/Y is set as if it was not single channel
 // This goes back and sets them to more appropriate values.
 void MatrixModel::InitSingleChannelModel()

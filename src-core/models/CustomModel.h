@@ -60,6 +60,7 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         [[nodiscard]] virtual int GetNumPhysicalStrings() const override;
         [[nodiscard]] bool SupportsChangingStringCount() const override{ return true; };
         [[nodiscard]] bool ChangeStringCount(long count, std::string& message) override;
+        bool ApplyStringLayout(int strings, const std::vector<int>& startNodes) override;
 
         [[nodiscard]] const std::string GetCustomData() const;
         [[nodiscard]] const std::string GetCompressedData() const;

@@ -37,6 +37,7 @@ public:
     void SetNumPoints(int points) { screenLocation.SetNumPoints(points); }
     void SetNumStrings(int strings) { _strings = strings; }
     void SetModelHeight(float height) { _height = height; }
+    bool ApplyStringLayout(int strings, const std::vector<int>& startNodes) override;
 
     const std::string StartNodeAttrName(int idx) const override
     {
