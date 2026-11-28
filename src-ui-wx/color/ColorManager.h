@@ -62,13 +62,18 @@ class ColorManager
             COLOR_WAVEFORM_MOUSE_MARKER,
             COLOR_TEXT_UNSELECTED,
             COLOR_TEXT_HIGHLIGHTED,
+            COLOR_IMPORT_COMPARE_BACKGROUND,
+            COLOR_IMPORT_COMPARE_VENDOR,
+            COLOR_IMPORT_COMPARE_LAYOUT,
+            COLOR_IMPORT_COMPARE_UNLIT,
             NUM_COLORS
         };
 
         enum class ColorCategory {
             COLOR_CAT_TIMINGS,
             COLOR_CAT_EFFECT_GRID,
-            COLOR_CAT_LAYOUT_TAB
+            COLOR_CAT_LAYOUT_TAB,
+            COLOR_CAT_IMPORT_COMPARE
         };
 
         class ColorDefinition
@@ -160,7 +165,12 @@ class ColorManager
             { ColorManager::ColorNames::COLOR_REFERENCE_EFFECT_DISABLED, "ReferenceEffectDisabled", "Disabled Reference Effect", xlColor(255, 255, 127), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_WAVEFORM_MOUSE_MARKER, "WaveformMouseMarker", "Waveform Mouse Marker", xlColor(0, 0, 255), ColorManager::ColorCategory::COLOR_CAT_EFFECT_GRID },
             { ColorManager::ColorNames::COLOR_TEXT_UNSELECTED, "TextUnselected", "Unselected Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
-            { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB }
+            { ColorManager::ColorNames::COLOR_TEXT_HIGHLIGHTED, "TextHighlighted", "Highlighted Text", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_LAYOUT_TAB },
+
+            { ColorManager::ColorNames::COLOR_IMPORT_COMPARE_BACKGROUND, "ImportCompareBackground", "Background", xlBLACK, ColorManager::ColorCategory::COLOR_CAT_IMPORT_COMPARE },
+            { ColorManager::ColorNames::COLOR_IMPORT_COMPARE_VENDOR, "ImportCompareVendor", "Vendor Model", xlYELLOW, ColorManager::ColorCategory::COLOR_CAT_IMPORT_COMPARE },
+            { ColorManager::ColorNames::COLOR_IMPORT_COMPARE_LAYOUT, "ImportCompareLayout", "Your Model", xlColor(0x2C, 0xC0, 0xBB), ColorManager::ColorCategory::COLOR_CAT_IMPORT_COMPARE },
+            { ColorManager::ColorNames::COLOR_IMPORT_COMPARE_UNLIT, "ImportCompareUnlit", "Rest of Model", xlDARK_GREY, ColorManager::ColorCategory::COLOR_CAT_IMPORT_COMPARE }
         };
         std::map<std::string, xlColor> GetColors() { return colors; }
         std::map<std::string, xlColor> GetDefaultColors() { return colors_default; }

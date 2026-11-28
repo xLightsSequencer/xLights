@@ -60,6 +60,8 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     bool _showModelInfo = false;
     int _labelFontSize = 14; // matches the target height this always rendered at before it became adjustable
     xlColor _labelColor = xlWHITE;
+    bool _hasClearColor = false;
+    xlColor _clearColor = xlBLACK;
     xlTexture* _fontTexture = nullptr;
     // Keyed by model name, not Model*: the highlight outlives model list
     // rebuilds, and a recycled allocation would otherwise highlight the wrong
@@ -129,6 +131,8 @@ public:
     // field assignment).
     void SetLabelFontSize(int size);
     void SetLabelColor(const xlColor& c) { _labelColor = c; Refresh(); }
+    void SetClearBackgroundColor(const xlColor& c) { _hasClearColor = true; _clearColor = c; }
+    xlColor ClearBackgroundColor() const override { return _hasClearColor ? _clearColor : GRAPHICS_BASE_CLASS::ClearBackgroundColor(); }
     int GetLabelFontSize() const { return _labelFontSize; }
     const xlColor& GetLabelColor() const { return _labelColor; }
 

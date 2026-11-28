@@ -3382,7 +3382,7 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& 
 
 static void HighlightCompareNodes(Model* model, const std::vector<const SubModel*>& subModels, const xlColor& lit)
 {
-    xlColor dim(xlDARK_GREY);
+    xlColor dim = ColorManager::instance()->GetColor(ColorManager::COLOR_IMPORT_COMPARE_UNLIT);
     if (model->GetDimmingCurve() != nullptr) {
         model->GetDimmingCurve()->apply(dim);
     }
@@ -3405,8 +3405,6 @@ static void HighlightCompareNodes(Model* model, const SubModel* subModel, const 
 }
 
 namespace {
-const xlColor CompareLayoutLit(0x2C, 0xC0, 0xBB);
-
 using GroupMember = std::pair<Model*, const SubModel*>;
 
 struct GroupPreview {
@@ -3543,6 +3541,7 @@ void xLightsImportChannelMapDialog::CreateComparePane()
         compareSizer->Add(slot.label, 0, wxEXPAND | wxBOTTOM, 3);
         slot.preview = new ModelPreview(_comparePanel);
         slot.preview->SetMinSize(FromDIP(wxSize(100, 100)));
+        slot.preview->SetClearBackgroundColor(ColorManager::instance()->GetColor(ColorManager::COLOR_IMPORT_COMPARE_BACKGROUND));
         compareSizer->Add(slot.preview, 1, wxEXPAND);
 
         ComparePreviewSlot* shown = &slot;
@@ -3773,7 +3772,7 @@ void xLightsImportChannelMapDialog::ShowVendorPreview(const std::string& channel
             members.push_back(member);
         }
         if (auto preview = PickGroupPreview(members); preview) {
-            HighlightCompareNodes(preview->model, preview->subModels, xlYELLOW);
+            HighlightCompareNodes(preview->model, preview->subModels, ColorManager::instance()->GetColor(ColorManager::COLOR_IMPORT_COMPARE_VENDOR));
             _vendorSlot.model = preview->model;
             label = GroupPreviewLabel(channelName, *preview);
         } else {
@@ -3782,7 +3781,7 @@ void xLightsImportChannelMapDialog::ShowVendorPreview(const std::string& channel
     } else if (hasLayoutData) {
         auto [model, subModel] = ResolveVendorName(channelName);
         if (model != nullptr) {
-            HighlightCompareNodes(model, subModel, xlYELLOW);
+            HighlightCompareNodes(model, subModel, ColorManager::instance()->GetColor(ColorManager::COLOR_IMPORT_COMPARE_VENDOR));
             _vendorSlot.model = model;
             label = channelName;
         }
@@ -3911,7 +3910,7 @@ void xLightsImportChannelMapDialog::HighlightLayoutModel(Model* model, const std
         }
         _layoutNodeBackup[model->GetName()] = { model, std::move(data) };
     }
-    HighlightCompareNodes(model, subModels, CompareLayoutLit);
+    HighlightCompareNodes(model, subModels, ColorManager::instance()->GetColor(ColorManager::COLOR_IMPORT_COMPARE_LAYOUT));
 }
 
 void xLightsImportChannelMapDialog::RestoreLayoutNodeColors()
